@@ -645,8 +645,8 @@
       .btn { width: 100%; }
       .btn.icon-only { width: 42px; }
       .item-row, .media-card, .queue-card, .project-card { flex-direction: column; }
-      .ideas, .auto.mobile-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
-      .idea, .auto.mobile-scroll > * { min-width: min(86vw, 360px); scroll-snap-align: start; }
+      .ideas, .mobile-scroll { display: flex !important; overflow-x: auto !important; scroll-snap-type: x mandatory !important; gap: 14px !important; padding-bottom: 12px !important; -webkit-overflow-scrolling: touch; }
+      .idea, .mobile-scroll > * { min-width: min(84vw, 350px) !important; scroll-snap-align: start !important; flex: 0 0 auto !important; }
       .hero-step { flex-basis: min(84vw, 320px); }
       .hero-copy { min-height: auto; }
       .modal-body { padding: 16px; }
@@ -839,18 +839,25 @@
     .sheet-hero::after {
       content: "";
       position: absolute;
-      width: clamp(96px, 12vw, 170px);
+      width: clamp(160px, 20vw, 320px);
       aspect-ratio: 1;
-      border: 1px solid rgba(23,23,23,.14);
-      border-radius: 28px;
-      background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(246,239,224,.72));
-      box-shadow: 0 26px 60px rgba(50,45,34,.13);
+      border-radius: 50%;
+      filter: blur(48px);
+      opacity: 0.5;
       z-index: -1;
-      transform: rotate(-10deg);
+      pointer-events: none;
     }
 
-    .sheet-hero::before { left: clamp(18px, 5vw, 70px); top: clamp(58px, 10vw, 112px); }
-    .sheet-hero::after { right: clamp(18px, 5vw, 70px); bottom: clamp(60px, 8vw, 110px); transform: rotate(12deg); }
+    .sheet-hero::before {
+      background: radial-gradient(circle, rgba(239,91,80,0.48), transparent 70%);
+      left: clamp(-30px, 1vw, 30px);
+      top: clamp(30px, 6vw, 90px);
+    }
+    .sheet-hero::after {
+      background: radial-gradient(circle, rgba(94,140,255,0.42), transparent 70%);
+      right: clamp(-30px, 1vw, 30px);
+      bottom: clamp(30px, 5vw, 90px);
+    }
 
     .hero-center {
       width: min(1080px, 100%);
@@ -1230,22 +1237,38 @@
 
     .floating-cube {
       position: absolute;
-      width: clamp(76px, 9vw, 126px);
+      width: clamp(110px, 14vw, 210px);
       aspect-ratio: 1;
-      border-radius: 24px;
-      border: 1px solid rgba(23,23,23,.14);
-      background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(246,239,224,.76));
-      box-shadow: 0 20px 52px rgba(50,45,34,.12);
-      display: grid;
-      place-items: center;
-      color: rgba(23,23,23,.6);
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: -.04em;
+      display: block;
+      pointer-events: none;
+      z-index: 2;
     }
 
-    .cube-left { left: clamp(18px, 5vw, 72px); bottom: clamp(48px, 8vw, 106px); transform: rotate(-8deg); }
-    .cube-right { right: clamp(20px, 5vw, 78px); top: clamp(82px, 11vw, 140px); transform: rotate(10deg); }
+    .cube-left {
+      left: clamp(14px, 4vw, 64px);
+      bottom: clamp(38px, 6vw, 96px);
+      background: url('/uploads/hero_cube.png') no-repeat center / contain;
+      animation: float-slow-left 9s ease-in-out infinite;
+    }
+
+    .cube-right {
+      right: clamp(16px, 4vw, 70px);
+      top: clamp(62px, 9vw, 128px);
+      background: url('/uploads/hero_clock.png') no-repeat center / contain;
+      animation: float-slow-right 10s ease-in-out infinite;
+    }
+
+    @keyframes float-slow-left {
+      0% { transform: translateY(0) rotate(-8deg); }
+      50% { transform: translateY(-14px) rotate(-10deg); }
+      100% { transform: translateY(0) rotate(-8deg); }
+    }
+
+    @keyframes float-slow-right {
+      0% { transform: translateY(0) rotate(10deg); }
+      50% { transform: translateY(-18px) rotate(12deg); }
+      100% { transform: translateY(0) rotate(10deg); }
+    }
 
     .calendar-time { color: #5e8cff !important; }
     .calendar-copy { color: #171717 !important; }
@@ -1329,15 +1352,18 @@
       .section-head { flex-direction: column; }
       .select-media-row { grid-template-columns: 1fr; }
       .pad { padding: 18px !important; }
-      .ideas, .auto.mobile-scroll {
+      .ideas, .mobile-scroll {
         display: flex !important;
         overflow-x: auto !important;
-        scroll-snap-type: x mandatory;
-        padding-bottom: 6px;
+        scroll-snap-type: x mandatory !important;
+        gap: 14px !important;
+        padding-bottom: 12px !important;
+        -webkit-overflow-scrolling: touch;
       }
-      .idea, .auto.mobile-scroll > * {
-        min-width: min(86vw, 360px);
-        scroll-snap-align: start;
+      .idea, .mobile-scroll > * {
+        min-width: min(84vw, 350px) !important;
+        scroll-snap-align: start !important;
+        flex: 0 0 auto !important;
       }
       .sheet-grid { min-width: 680px; }
       .sheet-cell { padding: 12px; }
@@ -1820,8 +1846,8 @@
         return `
           <section class="command-hero">
             <div class="panel sheet-hero">
-              <div class="floating-cube cube-left">IDEA<br/>QUEUE</div>
-              <div class="floating-cube cube-right">AI<br/>SHEET</div>
+              <div class="floating-cube cube-left"></div>
+              <div class="floating-cube cube-right"></div>
 
               <div class="hero-center">
                 <div class="sheet-eyebrow">${icons.spark} Контент-завод · Telegram / Reels / Shorts</div>
@@ -2013,7 +2039,7 @@ function renderMedia() {
                   </div>
                   <span class="chip">${state.media.length} шт.</span>
                 </div>
-                <div class="list" style="margin-top:18px;">
+                <div class="list mobile-scroll" style="margin-top:18px;">
                   ${state.media.length ? state.media.map(renderMediaItem).join("") : renderEmpty("Медиа пока нет.")}
                 </div>
               </div>
@@ -2058,7 +2084,7 @@ function renderMedia() {
                   </div>
                   <button class="btn small" data-action="new-project">+</button>
                 </div>
-                <div class="list" style="margin-top:18px;">
+                <div class="list mobile-scroll" style="margin-top:18px;">
                   ${state.projects.map(renderProjectCard).join("")}
                 </div>
                 <div class="actions">
