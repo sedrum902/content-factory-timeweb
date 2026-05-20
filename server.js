@@ -1,4 +1,4 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import multer from "multer";
@@ -7,6 +7,8 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
+dotenv.config();
+dotenv.config({ path: "timeweb-env-ready.env" });
 
 process.on("uncaughtException", (err) => {
   console.error("КРИТИЧЕСКАЯ ОШИБКА ПРИ СТАРТЕ:", err);
