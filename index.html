@@ -1493,8 +1493,8 @@
           backendStatus: "не проверен"
         },
         planner: {
-          publishDate: "",
-          publishTime: "",
+          publishDate: undefined,
+          publishTime: undefined,
           placement: "Telegram-канал",
           goal: "получить заявку",
           reason: "",
@@ -1558,8 +1558,8 @@
           const merged = { ...clone(defaultState), ...parsed };
           merged.settings = { ...clone(defaultState.settings), ...(parsed.settings || {}) };
           merged.planner = { ...clone(defaultState.planner), ...(parsed.planner || {}) };
-          if (!merged.planner.publishDate) merged.planner.publishDate = todayInputValue();
-          if (!merged.planner.publishTime) merged.planner.publishTime = nextHourInputValue();
+          if (merged.planner.publishDate === undefined || merged.planner.publishDate === null) merged.planner.publishDate = todayInputValue();
+          if (merged.planner.publishTime === undefined || merged.planner.publishTime === null) merged.planner.publishTime = nextHourInputValue();
           
           merged.settings.openaiApiKey = "";
           merged.settings.telegramBotToken = "";
@@ -1749,8 +1749,8 @@
       }
       function ensurePlanner() {
         if (!state.planner) state.planner = clone(defaultState.planner);
-        if (!state.planner.publishDate) state.planner.publishDate = todayInputValue();
-        if (!state.planner.publishTime) state.planner.publishTime = nextHourInputValue();
+        if (state.planner.publishDate === undefined || state.planner.publishDate === null) state.planner.publishDate = todayInputValue();
+        if (state.planner.publishTime === undefined || state.planner.publishTime === null) state.planner.publishTime = nextHourInputValue();
         return state.planner;
       }
       function escapeHtml(value) {
@@ -1928,7 +1928,7 @@
                       <h2 class="title">Идеи как строки таблицы</h2>
                       <p class="text">Выбери угол подачи. Активная карточка сразу прокидывается в редактор ниже.</p>
                     </div>
-                    <button class="btn small" data-action="generate">Обновить идеи</button>
+                    <button class="btn danger small" data-action="reset-workspace">${icons.trash} Очистить всё</button>
                   </div>
                   <div class="ideas" style="margin-top:18px;">
                     ${state.ideas.length ? state.ideas.map(renderIdea).join("") : renderEmpty("Идей пока нет. Заполни бриф слева и нажми Сгенерировать.")}
@@ -2983,6 +2983,35 @@ function renderMedia() {
         if (action === "publish-one") { publishOne(target.dataset.id); return; }
         if (action === "remove-queue") { state.queue = state.queue.filter((item) => item.id !== target.dataset.id); closeModal(); render(); return; }
         if (action === "save-queue-edit") { const p = state.queue.find((item) => item.id === target.dataset.id); if (p) { p.title = document.getElementById("editQueueTitle")?.value || p.title; p.body = document.getElementById("editQueueBody")?.value || p.body; p.tags = document.getElementById("editQueueTags")?.value || ""; p.publishDate = document.getElementById("editQueueDate")?.value || p.publishDate || todayInputValue(); p.publishTime = document.getElementById("editQueueTime")?.value || p.publishTime || nextHourInputValue(); p.scheduledAt = `${p.publishDate}T${p.publishTime}`; p.goal = document.getElementById("editQueueGoal")?.value || ""; p.reason = document.getElementById("editQueueReason")?.value || ""; showToast("Сохранено"); closeModal(); render(); } return; }
+        if (action === "reset-workspace") {
+          if (confirm("Очистить все поля брифа, идеи и планировщик?")) {
+            const project = activeProject();
+            project.name = "Новый проект";
+            project.niche = "";
+            project.offer = "";
+            project.audience = "";
+            project.pain = "";
+            project.common = "";
+            project.proof = "";
+            project.tone = "";
+            project.details = "";
+            
+            state.planner = {
+              publishDate: "",
+              publishTime: "",
+              placement: "Telegram-канал",
+              goal: "получить заявку",
+              reason: "",
+              formatNote: ""
+            };
+            state.ideas = [];
+            state.selectedIdeaId = "";
+            state.selectedMediaId = "";
+            
+            render();
+          }
+          return;
+        }
         if (action === "clear-queue") { if (confirm("Очистить очередь?")) { state.queue = []; render(); } return; }
         if (action === "new-project") { newProject(); return; }
         if (action === "delete-project") { deleteProject(); return; }
