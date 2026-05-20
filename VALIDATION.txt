@@ -1,2 +1,0 @@
-node --check server.js: ok
-index.html inline script node --check: ok
