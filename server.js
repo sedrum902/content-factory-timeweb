@@ -10,6 +10,22 @@ import { fileURLToPath } from "url";
 dotenv.config();
 dotenv.config({ path: "timeweb-env-ready.env" });
 
+function loadPackedEnvVariable(name) {
+  const raw = process.env[name];
+  if (!raw) return;
+
+  const parsed = dotenv.parse(raw);
+  for (const [key, value] of Object.entries(parsed)) {
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadPackedEnvVariable("logi");
+loadPackedEnvVariable("LOGI");
+loadPackedEnvVariable("TIMEWEB_ENV");
+
 process.on("uncaughtException", (err) => {
   console.error("КРИТИЧЕСКАЯ ОШИБКА ПРИ СТАРТЕ:", err);
 });
