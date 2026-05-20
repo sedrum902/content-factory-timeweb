@@ -364,6 +364,7 @@
       background-repeat: no-repeat;
       padding-right: 38px;
     }
+    .input:hover, .textarea:hover, .select:hover { border-color: rgba(255,255,255,.24); background: rgba(255,255,255,.075); }
     .input:focus, .textarea:focus, .select:focus { border-color: rgba(53,215,255,.55); box-shadow: 0 0 0 4px rgba(53,215,255,.08); background: rgba(0,0,0,.22); }
     .input::placeholder, .textarea::placeholder { color: rgba(255,255,255,.32); }
 
@@ -496,18 +497,19 @@
     .plan-box {
       margin-top: 24px;
       padding: 20px;
-      background: rgba(255,255,255,.025);
+      background: linear-gradient(180deg, rgba(255,255,255,.03) 0%, rgba(255,255,255,.005) 100%), rgba(10,12,24,.45);
       border: 1px solid rgba(255,255,255,.06);
+      border-top: 3px solid var(--cyan);
       border-radius: 20px;
       display: grid;
       gap: 16px;
-      box-shadow: inset 0 1px 1px rgba(255,255,255,.05);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,.05), 0 8px 32px rgba(0,0,0,.24);
     }
-    .plan-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--cyan); margin-bottom: 2px; }
+    .plan-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; color: var(--cyan); margin-bottom: 2px; }
     .placement-picker {
       display: flex;
-      gap: 8px;
-      background: rgba(255,255,255,.04);
+      gap: 6px;
+      background: rgba(0,0,0,.22);
       border: 1px solid rgba(255,255,255,.08);
       padding: 4px;
       border-radius: 14px;
@@ -518,19 +520,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 10px 14px;
+      gap: 6px;
+      padding: 10px 12px;
       background: transparent;
       border: none;
-      color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 600;
+      color: rgba(255,255,255,.58);
+      font-size: 12.5px;
+      font-weight: 800;
       border-radius: 10px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .placement-btn:hover {
-      background: rgba(255,255,255,.02);
+      background: rgba(255,255,255,.05);
       color: #fff;
     }
     .placement-btn.active {
@@ -538,20 +540,79 @@
       color: #fff;
       box-shadow: 0 4px 15px rgba(124,92,255,.25);
     }
-    .placement-btn .platform-badge {
-      display: inline-flex;
+    .placement-btn.active.active-tg {
+      background: linear-gradient(135deg, #24A1DE, #1475a2) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 15px rgba(36, 161, 222, 0.4) !important;
+    }
+    .placement-btn.active.active-ig {
+      background: linear-gradient(135deg, #f09433, #dc2743 50%, #bc1888) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 15px rgba(220, 39, 67, 0.4) !important;
+    }
+    .placement-btn.active.active-yt {
+      background: linear-gradient(135deg, #FF0000, #b30000) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4) !important;
+    }
+    /* --- Modal placement picker (dark theme) --- */
+    .modal-placement-picker {
+      display: flex;
+      gap: 6px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 5px;
+      border-radius: 14px;
+      width: 100%;
+    }
+    .modal-placement-btn {
+      flex: 1;
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
-      font-size: 10px;
+      gap: 7px;
+      padding: 11px 14px;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,.52);
+      font-size: 12.5px;
       font-weight: 800;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-placement-btn:hover {
+      background: rgba(255,255,255,.06);
       color: #fff;
     }
-    .placement-btn .badge-tg { background: #24A1DE; }
-    .placement-btn .badge-ig { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-    .placement-btn .badge-yt { background: #FF0000; }
+    .modal-placement-btn.active {
+      color: #fff;
+    }
+    .modal-placement-btn.active.active-tg {
+      background: linear-gradient(135deg, #24A1DE, #1475a2);
+      box-shadow: 0 4px 18px rgba(36, 161, 222, 0.45);
+    }
+    .modal-placement-btn.active.active-ig {
+      background: linear-gradient(135deg, #f09433, #dc2743 50%, #bc1888);
+      box-shadow: 0 4px 18px rgba(220, 39, 67, 0.45);
+    }
+    .modal-placement-btn.active.active-yt {
+      background: linear-gradient(135deg, #FF0000, #b30000);
+      box-shadow: 0 4px 18px rgba(255, 0, 0, 0.45);
+    }
+    .modal-publish-btn-wrap {
+      overflow: hidden;
+      transition: max-height 0.28s ease, opacity 0.22s ease;
+    }
+    .modal-publish-btn-wrap.hidden {
+      max-height: 0 !important;
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+    .modal-publish-btn-wrap.visible {
+      max-height: 60px;
+      opacity: 1;
+    }
     .result-grid { display: grid; gap: var(--gap); }
     .idea-shell, .result-shell { background: rgba(255,255,255,.052); }
     .media-attach-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; min-width: 0; }
@@ -1157,29 +1218,43 @@
 
     .plan-box {
       border: 1px solid rgba(23,23,23,.08) !important;
-      background: rgba(255,255,255,.5) !important;
+      border-top: 3px solid #7c5cff !important;
+      background: rgba(255,255,255,.6) !important;
       border-radius: 20px !important;
       padding: 20px !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,.02) !important;
+      box-shadow: 0 8px 30px rgba(0,0,0,.025) !important;
     }
     body.logged-in .plan-title {
       color: #7c5cff !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      letter-spacing: .12em !important;
     }
     body.logged-in .placement-picker {
-      background: rgba(23,23,23,.03) !important;
+      background: rgba(23,23,23,.04) !important;
       border-color: rgba(23,23,23,.08) !important;
     }
     body.logged-in .placement-btn {
       color: rgba(23,23,23,.56) !important;
     }
     body.logged-in .placement-btn:hover {
-      background: rgba(23,23,23,.02) !important;
+      background: rgba(23,23,23,.03) !important;
       color: #171717 !important;
     }
-    body.logged-in .placement-btn.active {
-      background: linear-gradient(135deg, #7c5cff, #35d7ff) !important;
+    /* --- Modal placement picker (light theme) --- */
+    body.logged-in .modal-placement-picker {
+      background: rgba(23,23,23,.04) !important;
+      border-color: rgba(23,23,23,.10) !important;
+    }
+    body.logged-in .modal-placement-btn {
+      color: rgba(23,23,23,.50) !important;
+    }
+    body.logged-in .modal-placement-btn:hover {
+      background: rgba(23,23,23,.04) !important;
+      color: #171717 !important;
+    }
+    body.logged-in .modal-placement-btn.active {
       color: #fff !important;
-      box-shadow: 0 4px 12px rgba(124,92,255,.25) !important;
     }
 
     .ideas {
@@ -2407,9 +2482,24 @@ function renderMedia() {
         }
 
         const options = [
-          { id: "Telegram", name: "Telegram", icon: "TG", cls: "tg" },
-          { id: "Instagram", name: "Instagram", icon: "IG", cls: "ig" },
-          { id: "YouTube", name: "YouTube", icon: "YT", cls: "yt" }
+          { 
+            id: "Telegram", 
+            name: "Telegram", 
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>`, 
+            cls: "tg" 
+          },
+          { 
+            id: "Instagram", 
+            name: "Instagram", 
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>`, 
+            cls: "ig" 
+          },
+          { 
+            id: "YouTube", 
+            name: "YouTube", 
+            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>`, 
+            cls: "yt" 
+          }
         ];
 
         return `
@@ -2417,9 +2507,9 @@ function renderMedia() {
             <span class="label">Куда публикуем</span>
             <div class="placement-picker">
               ${options.map(opt => `
-                <button type="button" class="placement-btn ${activeVal === opt.id ? "active" : ""}" data-action="set-placement" data-value="${opt.id}">
-                  <span class="platform-badge badge-${opt.cls}">${opt.icon}</span>
-                  ${opt.name}
+                <button type="button" class="placement-btn ${activeVal === opt.id ? "active active-" + opt.cls : ""}" data-action="set-placement" data-value="${opt.id}">
+                  ${opt.icon}
+                  <span>${opt.name}</span>
                 </button>
               `).join("")}
             </div>
@@ -2990,9 +3080,25 @@ function renderMedia() {
         const post = state.queue.find((item) => item.id === id);
         if (!post) return;
         const media = state.media.find((item) => item.id === post.mediaId);
+
+        const platformMap = { telegram: "Telegram", instagram: "Instagram", youtube: "YouTube" };
+        const currentPlatform = platformMap[post.platform] || "Telegram";
+
+        const tgIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>`;
+        const igIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>`;
+        const ytIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>`;
+
+        const channelOptions = [
+          { id: "Telegram", key: "telegram", icon: tgIcon, cls: "tg" },
+          { id: "Instagram", key: "instagram", icon: igIcon, cls: "ig" },
+          { id: "YouTube", key: "youtube", icon: ytIcon, cls: "yt" }
+        ];
+
+        const isTg = post.platform === "telegram";
+
         el.modalRoot.innerHTML = `
           <div class="modal-backdrop" data-action="close-modal" data-backdrop="true">
-            <div class="modal-card" role="dialog" aria-modal="true">
+            <div class="modal-card" role="dialog" aria-modal="true" style="max-width: 650px;">
               <div class="modal-head">
                 <h2 class="modal-title">Редактирование публикации</h2>
                 <button class="btn icon-only" data-action="close-modal" aria-label="Закрыть">${icons.close}</button>
@@ -3000,6 +3106,19 @@ function renderMedia() {
               <div class="modal-body">
                 <div class="form">
                   ${media ? renderPreview(media) : ""}
+
+                  <div class="field">
+                    <span class="label">Куда публикуем</span>
+                    <div class="modal-placement-picker" id="modalPlacementPicker" data-value="${escapeHtml(currentPlatform)}">
+                      ${channelOptions.map(opt => `
+                        <button type="button" class="modal-placement-btn ${currentPlatform === opt.id ? "active active-" + opt.cls : ""}" data-action="set-modal-platform" data-value="${opt.id}" data-key="${opt.key}" data-cls="${opt.cls}">
+                          ${opt.icon}
+                          <span>${opt.id}</span>
+                        </button>
+                      `).join("")}
+                    </div>
+                  </div>
+
                   <label class="field"><span class="label">Заголовок</span><input class="input" id="editQueueTitle" value="${escapeHtml(post.title)}"></label>
                   <label class="field"><span class="label">Текст</span><textarea class="textarea" id="editQueueBody">${escapeHtml(post.body)}</textarea></label>
                   <label class="field"><span class="label">Теги</span><input class="input" id="editQueueTags" value="${escapeHtml(post.tags)}"></label>
@@ -3012,10 +3131,9 @@ function renderMedia() {
                   <div class="actions">
                     <button class="btn primary" data-action="save-queue-edit" data-id="${escapeHtml(post.id)}">Сохранить</button>
                     <button class="btn" data-action="copy-queue" data-id="${escapeHtml(post.id)}">Скопировать</button>
-                    ${post.platform === "telegram"
-                      ? `<button class="btn green" data-action="publish-one" data-id="${escapeHtml(post.id)}">Опубликовать</button>`
-                      : ""
-                    }
+                    <div class="modal-publish-btn-wrap ${isTg ? "visible" : "hidden"}" id="modalPublishWrap">
+                      <button class="btn green" data-action="publish-one" data-id="${escapeHtml(post.id)}">Опубликовать</button>
+                    </div>
                     <button class="btn danger" data-action="remove-queue" data-id="${escapeHtml(post.id)}">Удалить</button>
                   </div>
                 </div>
@@ -3082,7 +3200,7 @@ function renderMedia() {
         if (action === "copy-text") { copyText(target.dataset.text || ""); return; }
         if (action === "publish-one") { publishOne(target.dataset.id); return; }
         if (action === "remove-queue") { state.queue = state.queue.filter((item) => item.id !== target.dataset.id); closeModal(); render(); return; }
-        if (action === "save-queue-edit") { const p = state.queue.find((item) => item.id === target.dataset.id); if (p) { p.title = document.getElementById("editQueueTitle")?.value || p.title; p.body = document.getElementById("editQueueBody")?.value || p.body; p.tags = document.getElementById("editQueueTags")?.value || ""; p.publishDate = document.getElementById("editQueueDate")?.value || p.publishDate || todayInputValue(); p.publishTime = document.getElementById("editQueueTime")?.value || p.publishTime || nextHourInputValue(); p.scheduledAt = `${p.publishDate}T${p.publishTime}`; p.goal = document.getElementById("editQueueGoal")?.value || ""; p.reason = document.getElementById("editQueueReason")?.value || ""; showToast("Сохранено"); closeModal(); render(); } return; }
+        if (action === "save-queue-edit") { const p = state.queue.find((item) => item.id === target.dataset.id); if (p) { p.title = document.getElementById("editQueueTitle")?.value || p.title; p.body = document.getElementById("editQueueBody")?.value || p.body; p.tags = document.getElementById("editQueueTags")?.value || ""; p.publishDate = document.getElementById("editQueueDate")?.value || p.publishDate || todayInputValue(); p.publishTime = document.getElementById("editQueueTime")?.value || p.publishTime || nextHourInputValue(); p.scheduledAt = `${p.publishDate}T${p.publishTime}`; p.goal = document.getElementById("editQueueGoal")?.value || ""; p.reason = document.getElementById("editQueueReason")?.value || ""; const picker = document.getElementById("modalPlacementPicker"); if (picker) { const chosen = picker.dataset.value || "Telegram"; const keyMap = { Telegram: "telegram", Instagram: "instagram", YouTube: "youtube" }; p.platform = keyMap[chosen] || p.platform; p.placement = chosen; } showToast("Сохранено"); closeModal(); render(); } return; }
         if (action === "reset-workspace") {
           if (confirm("Очистить все поля брифа, идеи и планировщик?")) {
             const project = activeProject();
@@ -3116,6 +3234,27 @@ function renderMedia() {
           state.planner.placement = target.dataset.value;
           saveState();
           render();
+          return;
+        }
+        if (action === "set-modal-platform") {
+          const picker = document.getElementById("modalPlacementPicker");
+          if (picker) {
+            picker.dataset.value = target.dataset.value;
+            picker.querySelectorAll(".modal-placement-btn").forEach(btn => {
+              btn.classList.remove("active", "active-tg", "active-ig", "active-yt");
+            });
+            target.classList.add("active", "active-" + target.dataset.cls);
+            const wrap = document.getElementById("modalPublishWrap");
+            if (wrap) {
+              if (target.dataset.key === "telegram") {
+                wrap.classList.remove("hidden");
+                wrap.classList.add("visible");
+              } else {
+                wrap.classList.remove("visible");
+                wrap.classList.add("hidden");
+              }
+            }
+          }
           return;
         }
         if (action === "clear-queue") { if (confirm("Очистить очередь?")) { state.queue = []; render(); } return; }
