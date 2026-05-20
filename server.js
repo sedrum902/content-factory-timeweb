@@ -1179,6 +1179,96 @@ app.post("/api/upload", requireAuth, (req, res, next) => {
   }
 });
 
+async function enhancePromptWithAi(userPrompt) {
+  if (!TIMEWEB_API_KEY || !TIMEWEB_AGENT_ID) {
+    console.log("enhancePromptWithAi: No Timeweb credentials, using original prompt.");
+    return userPrompt;
+  }
+  try {
+    const systemPrompt = `You are a professional prompt engineer for AI image generators (like Midjourney, Stable Diffusion, Pollinations).
+Your task is to take a description of an image in Russian (or any other language) and translate/expand it into a highly detailed, professional, photography-centric prompt in English.
+Make it vivid, state the style (e.g., professional commercial photography, cinematic lighting, 8k, highly detailed, realistic, award-winning composition), details, lighting, and camera settings.
+Do not include any chat prefix, introduction, or markdown styling. Just output the final English prompt string.`;
+
+    const requestPayload = {
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Expand this prompt: "${userPrompt}"` }
+      ]
+    };
+    
+    const result = await callTimewebAgentApi(TIMEWEB_API_KEY, TIMEWEB_AGENT_ID, requestPayload);
+    const enhanced = result?.completion?.choices?.[0]?.message?.content?.trim();
+    if (enhanced) {
+      console.log(`enhancePromptWithAi successful. Original: "${userPrompt}" -> Enhanced: "${enhanced}"`);
+      return enhanced;
+    }
+  } catch (err) {
+    console.error("Failed to enhance prompt with AI agent:", err);
+  }
+  return userPrompt;
+}
+
+async function callImageGenerator(prompt) {
+  const seed = Math.floor(Math.random() * 1000000);
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}&private=true`;
+  
+  console.log(`callImageGenerator: Fetching image from Pollinations.ai for prompt: "${prompt}"`);
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Ошибка генерации изображения: ${response.statusText} (${response.status})`);
+  }
+  
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
+app.post("/api/generate-image", requireAuth, async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
+      return res.status(400).json({ error: "Не передан текст промпта" });
+    }
+
+    console.log(`POST /api/generate-image: original prompt = "${prompt}"`);
+
+    // 1. Улучшение промпта с помощью ИИ
+    const enhancedPrompt = await enhancePromptWithAi(prompt.trim());
+
+    // 2. Генерация изображения
+    const buffer = await callImageGenerator(enhancedPrompt);
+
+    // 3. Сохранение файла на диск в uploadsDir
+    const fileId = `${req.user.id}_gen_${Date.now()}_${crypto.randomBytes(4).toString("hex")}.jpg`;
+    const newPath = path.join(uploadsDir, fileId);
+    
+    fs.writeFileSync(newPath, buffer);
+    console.log(`POST /api/generate-image: Saved generated image to ${newPath}`);
+
+    // 4. Формирование публичной ссылки и ответ
+    const publicUrl = `${baseUrlFromRequest(req)}/uploads/${encodeURIComponent(fileId)}`;
+
+    // Имя для библиотеки
+    const truncatedPrompt = prompt.slice(0, 30).trim() + (prompt.length > 30 ? "..." : "");
+    const originalName = `ИИ_${truncatedPrompt}.jpg`;
+
+    res.json({
+      ok: true,
+      id: fileId,
+      name: originalName,
+      type: "image/jpeg",
+      size: buffer.length,
+      url: publicUrl
+    });
+  } catch (error) {
+    console.error("POST /api/generate-image error:", error);
+    res.status(500).json({
+      error: error.message || "Не удалось сгенерировать изображение"
+    });
+  }
+});
+
 async function telegramCallMultipart(method, caption, filePath, botToken, chatId) {
   const url = `https://api.telegram.org/bot${botToken}/${method}`;
   const form = new FormData();
