@@ -652,6 +652,698 @@
       .modal-body { padding: 16px; }
     }
   </style>
+
+  <style id="saa-sheet-inspired-redesign">
+    /* === Референсный слой: Saa-Sheet / светлая grid-система === */
+    :root {
+      color-scheme: light;
+      --bg: #f6f3eb;
+      --bg-2: #fffaf0;
+      --bg-3: #ece6d9;
+      --panel: rgba(255,255,255,.82);
+      --panel-2: rgba(255,255,255,.96);
+      --glass: rgba(255,255,255,.86);
+      --line: rgba(20, 23, 31, .13);
+      --line-strong: rgba(20, 23, 31, .22);
+      --text: #171717;
+      --muted: rgba(23,23,23,.66);
+      --soft: rgba(23,23,23,.46);
+      --white: #ffffff;
+      --black: #171717;
+      --blue: #5e8cff;
+      --cyan: #4fb9d9;
+      --green: #4abf7a;
+      --yellow: #efb647;
+      --red: #ef5b50;
+      --orange: #f0974a;
+      --radius: 26px;
+      --radius-sm: 16px;
+      --shadow: 0 28px 70px rgba(50, 45, 34, .13);
+      --font: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-display: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --container: 1500px;
+      --pad: clamp(18px, 2.2vw, 34px);
+      --gap: clamp(14px, 1.55vw, 24px);
+      --fast: .18s ease;
+    }
+
+    @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap");
+
+    html { background: #f6f3eb !important; }
+
+    body {
+      color: var(--text) !important;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(239,91,80,.24), transparent 26%),
+        radial-gradient(circle at 84% 12%, rgba(94,140,255,.18), transparent 28%),
+        linear-gradient(rgba(23,23,23,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,23,.055) 1px, transparent 1px),
+        linear-gradient(180deg, #fbf6eb 0%, #f3eddf 48%, #fbf7ee 100%) !important;
+      background-size: auto, auto, 42px 42px, 42px 42px, auto !important;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 8% 20%, rgba(255,255,255,.72), transparent 22%),
+        radial-gradient(circle at 86% 6%, rgba(255,255,255,.8), transparent 18%) !important;
+      opacity: .75 !important;
+      mask-image: none !important;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto 4vw 4vh auto;
+      width: min(34vw, 420px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(94,140,255,.14), transparent 68%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .auth, .app, .modal-root, .toast { position: relative; z-index: 1; }
+
+    .shell { width: min(var(--container), calc(100% - clamp(26px, 5vw, 80px))) !important; }
+
+    .topbar {
+      padding: 16px 0 12px !important;
+      background: linear-gradient(180deg, rgba(251,246,235,.94), rgba(251,246,235,.74) 72%, transparent) !important;
+      backdrop-filter: blur(18px) !important;
+      border-bottom: 1px solid rgba(23,23,23,.06);
+    }
+
+    .topbar-inner {
+      grid-template-columns: minmax(190px, max-content) minmax(0, 1fr) minmax(160px, 270px) !important;
+      gap: 14px !important;
+    }
+
+    .brand-kicker {
+      color: rgba(23,23,23,.46) !important;
+      letter-spacing: .12em !important;
+      font-size: 10px !important;
+    }
+
+    .brand-title {
+      color: #171717 !important;
+      letter-spacing: -.045em !important;
+      font-size: clamp(18px, 1.65vw, 25px) !important;
+    }
+
+    .nav {
+      justify-content: center;
+      border: 1px solid rgba(23,23,23,.11) !important;
+      background: rgba(255,255,255,.68) !important;
+      box-shadow: 0 14px 38px rgba(50,45,34,.07);
+      border-radius: 999px !important;
+      padding: 7px !important;
+    }
+
+    .nav-btn {
+      color: rgba(23,23,23,.58) !important;
+      border-radius: 999px !important;
+      min-height: 38px !important;
+      padding: 9px 13px !important;
+      font-size: 12px !important;
+      letter-spacing: -.02em;
+    }
+
+    .nav-btn:hover {
+      color: #171717 !important;
+      background: rgba(23,23,23,.055) !important;
+    }
+
+    .nav-btn.active {
+      color: #fff !important;
+      background: #171717 !important;
+      box-shadow: 0 12px 24px rgba(23,23,23,.18) !important;
+    }
+
+    .account-pill {
+      background: rgba(255,255,255,.72) !important;
+      color: rgba(23,23,23,.64) !important;
+      border-color: rgba(23,23,23,.12) !important;
+      box-shadow: 0 14px 34px rgba(50,45,34,.08);
+    }
+
+    .main { padding-top: clamp(18px, 2vw, 32px) !important; }
+
+    .panel, .auth-card, .mini-panel, .modal-card,
+    .metric, .soft-card, .idea, .media-card, .queue-card, .project-card,
+    .output-box, .calendar-day, .notice, .platform, .empty, .log {
+      border-color: rgba(23,23,23,.12) !important;
+      color: var(--text) !important;
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.72) !important;
+      min-width: 0 !important;
+    }
+
+    .panel, .auth-card, .mini-panel, .modal-card {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.74)),
+        linear-gradient(rgba(23,23,23,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,23,.035) 1px, transparent 1px) !important;
+      background-size: auto, 28px 28px, 28px 28px !important;
+      backdrop-filter: blur(16px) !important;
+    }
+
+    .auth-card::after { display: none !important; }
+
+    .command-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--gap);
+      min-width: 0;
+      margin-bottom: var(--gap);
+    }
+
+    .sheet-hero {
+      position: relative;
+      overflow: hidden;
+      min-height: clamp(560px, 70vh, 760px);
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+      border-radius: clamp(28px, 4vw, 52px) !important;
+      border: 1px solid rgba(23,23,23,.13) !important;
+      background:
+        radial-gradient(circle at 16% 16%, rgba(239,91,80,.22), transparent 24%),
+        radial-gradient(circle at 84% 18%, rgba(94,140,255,.18), transparent 27%),
+        linear-gradient(rgba(23,23,23,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,23,.055) 1px, transparent 1px),
+        #fbf7ec !important;
+      background-size: auto, auto, 46px 46px, 46px 46px, auto !important;
+      box-shadow: 0 40px 100px rgba(50,45,34,.14) !important;
+    }
+
+    .sheet-hero::before,
+    .sheet-hero::after {
+      content: "";
+      position: absolute;
+      width: clamp(96px, 12vw, 170px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(23,23,23,.14);
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(246,239,224,.72));
+      box-shadow: 0 26px 60px rgba(50,45,34,.13);
+      z-index: -1;
+      transform: rotate(-10deg);
+    }
+
+    .sheet-hero::before { left: clamp(18px, 5vw, 70px); top: clamp(58px, 10vw, 112px); }
+    .sheet-hero::after { right: clamp(18px, 5vw, 70px); bottom: clamp(60px, 8vw, 110px); transform: rotate(12deg); }
+
+    .hero-center {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 72px);
+      text-align: center;
+      display: grid;
+      justify-items: center;
+      gap: 20px;
+    }
+
+    .hero-status-line,
+    .hero-actions,
+    .button-group {
+      justify-content: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .sheet-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(23,23,23,.12);
+      background: rgba(255,255,255,.74);
+      color: rgba(23,23,23,.64);
+      box-shadow: 0 12px 24px rgba(50,45,34,.08);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+
+    .title-xl {
+      color: #171717 !important;
+      max-width: 1040px !important;
+      font-size: clamp(42px, 7vw, 104px) !important;
+      line-height: .96 !important;
+      letter-spacing: -.075em !important;
+      font-weight: 700 !important;
+      text-wrap: balance;
+    }
+
+    .title-xl .mark-red { color: #ef5b50; }
+    .title-xl .mark-blue { color: #5e8cff; }
+
+    .lead {
+      color: rgba(23,23,23,.66) !important;
+      max-width: 760px !important;
+      margin: 0 !important;
+      font-size: clamp(15px, 1.4vw, 19px) !important;
+      line-height: 1.7 !important;
+      text-wrap: balance;
+    }
+
+    .sheet-preview {
+      width: min(1080px, calc(100% - clamp(22px, 5vw, 72px)));
+      margin: clamp(4px, 1vw, 14px) auto 0;
+      border-radius: clamp(22px, 3vw, 34px);
+      border: 1px solid rgba(23,23,23,.16);
+      background: #fff;
+      box-shadow: 0 32px 80px rgba(50,45,34,.18);
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .sheet-preview-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(23,23,23,.1);
+      background: #f8f2e7;
+    }
+
+    .sheet-dots { display: flex; gap: 7px; }
+    .sheet-dots i { width: 10px; height: 10px; border-radius: 50%; background: #ef5b50; display: block; }
+    .sheet-dots i:nth-child(2) { background: #efb647; }
+    .sheet-dots i:nth-child(3) { background: #4abf7a; }
+
+    .sheet-preview-title {
+      color: rgba(23,23,23,.55);
+      font-size: 12px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .sheet-grid {
+      display: grid;
+      grid-template-columns: 1.05fr .8fr .7fr .75fr;
+      min-width: 760px;
+    }
+
+    .sheet-cell {
+      padding: 14px 15px;
+      border-right: 1px solid rgba(23,23,23,.09);
+      border-bottom: 1px solid rgba(23,23,23,.09);
+      min-width: 0;
+    }
+
+    .sheet-cell:nth-child(4n) { border-right: 0; }
+    .sheet-head { background: #faf6ee; color: rgba(23,23,23,.48); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+    .sheet-body { color: #171717; font-size: 13px; line-height: 1.45; font-weight: 600; overflow-wrap: anywhere; }
+    .sheet-chip-mini { display: inline-flex; padding: 5px 8px; border-radius: 99px; background: #171717; color: #fff; font-size: 11px; font-weight: 700; }
+
+    .hero-stats {
+      width: min(980px, 100%);
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px !important;
+    }
+
+    .hero-stat {
+      border: 1px solid rgba(23,23,23,.12) !important;
+      background: rgba(255,255,255,.76) !important;
+      color: #171717 !important;
+      box-shadow: 0 16px 34px rgba(50,45,34,.08);
+    }
+
+    .hero-stat b { color: #171717 !important; }
+    .hero-stat span { color: rgba(23,23,23,.55) !important; }
+
+    .workbench {
+      display: grid !important;
+      grid-template-columns: minmax(320px, .78fr) minmax(0, 1.35fr) !important;
+      gap: var(--gap);
+      align-items: start;
+      margin-top: var(--gap);
+      min-width: 0;
+    }
+
+    .brief-panel {
+      position: sticky;
+      top: 118px;
+      align-self: start;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      color: #171717 !important;
+      font-size: clamp(25px, 2.8vw, 42px) !important;
+      line-height: 1.02 !important;
+      letter-spacing: -.06em !important;
+      font-weight: 700 !important;
+    }
+
+    .title-sm, .item-title, .calendar-title {
+      color: #171717 !important;
+      font-weight: 700 !important;
+    }
+
+    .kicker, .plan-title {
+      color: #ef5b50 !important;
+      letter-spacing: .11em !important;
+      text-shadow: none !important;
+    }
+
+    .text, .auth-text, .item-sub, .metric-hint, .calendar-meta, .platform-sub {
+      color: rgba(23,23,23,.58) !important;
+    }
+
+    .badge, .chip {
+      color: rgba(23,23,23,.62) !important;
+      border-color: rgba(23,23,23,.12) !important;
+      background: rgba(255,255,255,.72) !important;
+      white-space: normal !important;
+      text-align: left;
+      box-shadow: none !important;
+    }
+
+    .chip.ok { background: rgba(74,191,122,.13) !important; color: #28784d !important; border-color: rgba(74,191,122,.25) !important; }
+    .chip.warn { background: rgba(239,182,71,.18) !important; color: #8a5e09 !important; border-color: rgba(239,182,71,.28) !important; }
+    .chip.bad { background: rgba(239,91,80,.14) !important; color: #a8322a !important; border-color: rgba(239,91,80,.26) !important; }
+    .chip.info { background: rgba(94,140,255,.13) !important; color: #2f55ad !important; border-color: rgba(94,140,255,.25) !important; }
+
+    .btn {
+      border-radius: 999px !important;
+      border-color: rgba(23,23,23,.14) !important;
+      background: rgba(255,255,255,.78) !important;
+      color: #171717 !important;
+      box-shadow: 0 14px 28px rgba(50,45,34,.08);
+      letter-spacing: -.025em;
+      white-space: normal !important;
+      text-align: center !important;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      background: #fff !important;
+      border-color: rgba(23,23,23,.24) !important;
+      box-shadow: 0 18px 34px rgba(50,45,34,.12);
+    }
+
+    .btn.primary {
+      color: #fff !important;
+      background: #171717 !important;
+      border-color: #171717 !important;
+      box-shadow: 0 18px 38px rgba(23,23,23,.22) !important;
+    }
+
+    .btn.primary:hover { background: #2a2a2a !important; }
+
+    .btn.green { background: rgba(74,191,122,.12) !important; color: #226b43 !important; border-color: rgba(74,191,122,.25) !important; }
+    .btn.danger { background: rgba(239,91,80,.12) !important; color: #a8322a !important; border-color: rgba(239,91,80,.25) !important; }
+
+    .input, .textarea, .select {
+      color: #171717 !important;
+      background: rgba(255,255,255,.82) !important;
+      border-color: rgba(23,23,23,.13) !important;
+      border-radius: 18px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .input::placeholder, .textarea::placeholder { color: rgba(23,23,23,.32) !important; }
+    .input:focus, .textarea:focus, .select:focus {
+      border-color: rgba(94,140,255,.55) !important;
+      box-shadow: 0 0 0 4px rgba(94,140,255,.11) !important;
+      background: #fff !important;
+    }
+
+    .label {
+      color: rgba(23,23,23,.48) !important;
+      letter-spacing: .09em !important;
+    }
+
+    .plan-box {
+      border-color: rgba(23,23,23,.12) !important;
+      background:
+        linear-gradient(rgba(23,23,23,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,23,.035) 1px, transparent 1px),
+        #f8f2e7 !important;
+      background-size: 24px 24px, 24px 24px, auto !important;
+    }
+
+    .ideas {
+      grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr)) !important;
+    }
+
+    .idea {
+      color: #171717 !important;
+      background: rgba(255,255,255,.78) !important;
+      border-color: rgba(23,23,23,.12) !important;
+    }
+
+    .idea:hover {
+      background: #fff !important;
+      border-color: rgba(23,23,23,.22) !important;
+    }
+
+    .idea.active {
+      color: #fff !important;
+      background: #171717 !important;
+      border-color: #171717 !important;
+      box-shadow: 0 22px 46px rgba(23,23,23,.22) !important;
+    }
+
+    .idea-title { color: inherit !important; }
+    .idea.active .item-sub, .idea.active .idea-title { color: rgba(255,255,255,.76) !important; }
+    .idea.active .pill, .idea.active .chip { background: rgba(255,255,255,.13) !important; color: #fff !important; border-color: rgba(255,255,255,.16) !important; }
+
+    .platform {
+      color: #171717 !important;
+      background: rgba(255,255,255,.72) !important;
+    }
+
+    .platform:hover,
+    .platform.active {
+      background: #171717 !important;
+      color: #fff !important;
+      border-color: #171717 !important;
+    }
+
+    .platform.active .platform-sub,
+    .platform:hover .platform-sub { color: rgba(255,255,255,.62) !important; }
+
+    .output-box {
+      background:
+        linear-gradient(rgba(23,23,23,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,23,.035) 1px, transparent 1px),
+        rgba(255,255,255,.76) !important;
+      background-size: 26px 26px, 26px 26px, auto !important;
+    }
+
+    .metric, .soft-card, .media-card, .queue-card, .project-card, .calendar-day, .item-row {
+      background: rgba(255,255,255,.78) !important;
+      border-color: rgba(23,23,23,.11) !important;
+    }
+
+    .media-card:hover, .queue-card:hover, .project-card:hover {
+      background: #fff !important;
+      border-color: rgba(23,23,23,.22) !important;
+    }
+
+    .metric-value {
+      color: #171717 !important;
+      letter-spacing: -.055em !important;
+    }
+
+    .preview {
+      background:
+        linear-gradient(rgba(23,23,23,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,23,.035) 1px, transparent 1px),
+        #faf6ee !important;
+      background-size: 24px 24px, 24px 24px, auto !important;
+      border-color: rgba(23,23,23,.12) !important;
+      color: rgba(23,23,23,.45) !important;
+    }
+
+    .empty {
+      border-style: dashed !important;
+      background: rgba(255,255,255,.54) !important;
+      color: rgba(23,23,23,.52) !important;
+    }
+
+    .notice {
+      background: linear-gradient(135deg, rgba(239,182,71,.18), rgba(94,140,255,.10)) !important;
+      border-color: rgba(23,23,23,.12) !important;
+    }
+
+    .log {
+      background: rgba(255,255,255,.7) !important;
+      border-left-color: rgba(23,23,23,.2) !important;
+    }
+
+    .log-time { color: rgba(23,23,23,.4) !important; }
+    .log-text { color: rgba(23,23,23,.72) !important; }
+    .log-meta, .modal-pre, .code-token {
+      color: rgba(23,23,23,.72) !important;
+      background: #f8f2e7 !important;
+      border-color: rgba(23,23,23,.12) !important;
+    }
+
+    .modal-backdrop {
+      background: rgba(23,23,23,.34) !important;
+      backdrop-filter: blur(12px) !important;
+    }
+
+    .modal-card {
+      background: #fbf7ec !important;
+      color: #171717 !important;
+    }
+
+    .toast {
+      background: #171717 !important;
+      color: #fff !important;
+      box-shadow: 0 20px 50px rgba(23,23,23,.25) !important;
+    }
+
+    .loading-line {
+      background: linear-gradient(90deg, #ef5b50, #5e8cff, #4abf7a) !important;
+    }
+
+    .one-key-box {
+      grid-template-columns: minmax(0, 1fr) auto !important;
+    }
+
+    .select-media-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .select-media-row > * { min-width: 0; }
+
+    .floating-cube {
+      position: absolute;
+      width: clamp(76px, 9vw, 126px);
+      aspect-ratio: 1;
+      border-radius: 24px;
+      border: 1px solid rgba(23,23,23,.14);
+      background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(246,239,224,.76));
+      box-shadow: 0 20px 52px rgba(50,45,34,.12);
+      display: grid;
+      place-items: center;
+      color: rgba(23,23,23,.6);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: -.04em;
+    }
+
+    .cube-left { left: clamp(18px, 5vw, 72px); bottom: clamp(48px, 8vw, 106px); transform: rotate(-8deg); }
+    .cube-right { right: clamp(20px, 5vw, 78px); top: clamp(82px, 11vw, 140px); transform: rotate(10deg); }
+
+    .calendar-time { color: #5e8cff !important; }
+    .calendar-copy { color: #171717 !important; }
+
+    .calendar-item {
+      background: rgba(255,255,255,.68) !important;
+      color: #171717 !important;
+      border-color: rgba(23,23,23,.1) !important;
+    }
+
+    .calendar-item:hover {
+      background: #fff !important;
+      border-color: rgba(94,140,255,.32) !important;
+    }
+
+    .body-text-preview {
+      color: rgba(23,23,23,.66) !important;
+    }
+
+    .soft-card-head { align-items: flex-start; }
+    .icon-box {
+      background: #171717 !important;
+      color: #fff !important;
+      border: 1px solid rgba(23,23,23,.1);
+    }
+
+    ::-webkit-scrollbar-track { background: rgba(23,23,23,.04) !important; }
+    ::-webkit-scrollbar-thumb { background: rgba(23,23,23,.18) !important; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(23,23,23,.28) !important; }
+
+    .title, .title-xl, .title-sm, .lead, .text, .item-title, .item-sub, .card-title, .card-text, .metric-value, .metric-hint, .chip, .badge, .btn, .nav-btn, .account-pill, .input, .textarea, .select, .empty, .label, .sheet-cell {
+      max-width: 100%;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+
+    .code-token, .modal-pre, .log-meta, .log-text {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    @media (max-width: 1280px) {
+      .topbar-inner { grid-template-columns: minmax(0, 1fr) minmax(160px, 270px) !important; }
+      .nav { grid-column: 1 / -1; order: 3; justify-content: flex-start; }
+      .workbench { grid-template-columns: 1fr !important; }
+      .brief-panel { position: static; }
+    }
+
+    @media (max-width: 900px) {
+      .sheet-hero {
+        min-height: auto;
+        place-items: stretch;
+      }
+      .hero-center {
+        padding: clamp(24px, 8vw, 46px) clamp(18px, 5vw, 30px);
+      }
+      .sheet-preview {
+        width: calc(100% - 28px);
+        overflow-x: auto;
+      }
+      .hero-stats { grid-template-columns: 1fr !important; }
+      .floating-cube { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 26px, var(--container)) !important; }
+      .topbar-inner { grid-template-columns: 1fr !important; }
+      .nav {
+        justify-content: flex-start;
+        border-radius: 22px !important;
+        overflow-x: auto;
+      }
+      .nav-btn span { display: none; }
+      .account-pill { max-width: 100% !important; }
+      .title-xl { font-size: clamp(38px, 12vw, 58px) !important; letter-spacing: -.065em !important; }
+      .lead { font-size: 15px !important; }
+      .sheet-hero { border-radius: 28px !important; }
+      .hero-actions, .actions { width: 100%; }
+      .btn { width: 100%; }
+      .section-head { flex-direction: column; }
+      .select-media-row { grid-template-columns: 1fr; }
+      .pad { padding: 18px !important; }
+      .ideas, .auto.mobile-scroll {
+        display: flex !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 6px;
+      }
+      .idea, .auto.mobile-scroll > * {
+        min-width: min(86vw, 360px);
+        scroll-snap-align: start;
+      }
+      .sheet-grid { min-width: 680px; }
+      .sheet-cell { padding: 12px; }
+    }
+  </style>
+
 </head>
 
 <body>
@@ -1127,40 +1819,45 @@
 
         return `
           <section class="command-hero">
-            <div class="panel hero-copy">
-              <div class="pad">
-                <div class="hero-status-line">
-                  <span class="badge">${icons.spark} Контент-пульт</span>
-                  <span class="chip info">Telegram · Reels · Shorts</span>
-                </div>
-                <h1 class="title-xl">Собери контент из брифа, а не из хаоса.</h1>
-                <p class="lead">Один экран для идеи, площадки, времени публикации и готового текста. Заполнил вводные — получил пост, сценарий и материал для календаря.</p>
+            <div class="panel sheet-hero">
+              <div class="floating-cube cube-left">IDEA<br/>QUEUE</div>
+              <div class="floating-cube cube-right">AI<br/>SHEET</div>
+
+              <div class="hero-center">
+                <div class="sheet-eyebrow">${icons.spark} Контент-завод · Telegram / Reels / Shorts</div>
+                <h1 class="title-xl">Контент из <span class="mark-red">брифа</span>, идей и <span class="mark-blue">календаря</span>.</h1>
+                <p class="lead">Заполняешь вводные по проекту, выбираешь площадку и время публикации. Система собирает идею, текст, сценарий и ставит материал в очередь.</p>
+
                 <div class="hero-actions">
-                  <button class="btn primary" data-action="generate">${icons.spark} Запустить генерацию</button>
+                  <button class="btn primary" data-action="generate">${icons.spark} Сгенерировать материал</button>
                   <button class="btn" data-action="tab" data-tab="queue">Открыть календарь</button>
                 </div>
+
                 <div class="hero-stats">
                   <div class="hero-stat"><b>${state.ideas.length}</b><span>идей сейчас в работе</span></div>
                   <div class="hero-stat"><b>${state.queue.length}</b><span>материалов в календаре</span></div>
                   <div class="hero-stat"><b>${state.media.length}</b><span>файлов в медиатеке</span></div>
                 </div>
               </div>
-            </div>
 
-            <div class="panel mini-map">
-              <div class="pad">
-                <div class="kicker">Маршрут</div>
-                <div class="map-row">
-                  <div class="map-num">01</div>
-                  <div><b>Бриф без воды</b><span>ниша, оффер, боль, доказательство и тема выпуска</span></div>
+              <div class="sheet-preview" aria-hidden="true">
+                <div class="sheet-preview-top">
+                  <div class="sheet-dots"><i></i><i></i><i></i></div>
+                  <div class="sheet-preview-title">content-factory / production-sheet</div>
                 </div>
-                <div class="map-row">
-                  <div class="map-num">02</div>
-                  <div><b>Выбор идеи</b><span>несколько углов подачи, чтобы не цепляться за первый вариант</span></div>
-                </div>
-                <div class="map-row">
-                  <div class="map-num">03</div>
-                  <div><b>Пост в календарь</b><span>площадка, медиа, дата, время и статус публикации</span></div>
+                <div class="sheet-grid">
+                  <div class="sheet-cell sheet-head">Проект</div>
+                  <div class="sheet-cell sheet-head">Идея</div>
+                  <div class="sheet-cell sheet-head">Формат</div>
+                  <div class="sheet-cell sheet-head">Статус</div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(project.name || "Новый проект")}</div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(selectedIdea()?.title || "Сначала сгенерируй идеи")}</div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(content.format || "Telegram / Reels")}</div>
+                  <div class="sheet-cell sheet-body"><span class="sheet-chip-mini">готовится</span></div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(project.niche || "Ниша не заполнена")}</div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(planner.goal || "получить заявку")}</div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(planner.publishDate || "дата")}</div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(planner.publishTime || "время")}</div>
                 </div>
               </div>
             </div>
@@ -1176,9 +1873,9 @@
               <div class="pad">
                 <div class="section-head">
                   <div>
-                    <div class="kicker">Вводные</div>
-                    <h2 class="title">Бриф</h2>
-                    <p class="text">Коротко, но по делу. Эти поля напрямую влияют на качество идей и сценариев.</p>
+                    <div class="kicker">Шаг 01</div>
+                    <h2 class="title">Бриф-лист</h2>
+                    <p class="text">Заполни только то, что реально влияет на результат: ниша, оффер, аудитория, боль и доказательство.</p>
                   </div>
                   <span class="chip warn">1 минута</span>
                 </div>
@@ -1207,38 +1904,40 @@
                     ${renderSettingInput("ideaCount", "Сколько вариантов", state.settings.ideaCount || "3", "Например: 3")}
                   </div>
 
-                  <button class="btn primary" data-action="generate" style="margin-top: 10px;">${icons.spark} Сгенерировать материалы</button>
+                  <button class="btn primary" data-action="generate" style="margin-top: 12px;">${icons.spark} Сгенерировать материалы</button>
                 </div>
               </div>
             </aside>
 
-            <div class="result-grid">
-              <div class="panel idea-shell">
+            <div class="stack">
+              <div class="panel">
                 <div class="pad">
                   <div class="section-head">
                     <div>
-                      <div class="kicker">Углы подачи</div>
-                      <h2 class="title">Выбери идею</h2>
+                      <div class="kicker">Шаг 02</div>
+                      <h2 class="title">Идеи как строки таблицы</h2>
+                      <p class="text">Выбери угол подачи. Активная карточка сразу прокидывается в редактор ниже.</p>
                     </div>
                     <button class="btn small" data-action="generate">Обновить идеи</button>
                   </div>
-                  <div class="ideas">
-                    ${state.ideas.length ? state.ideas.map(renderIdea).join("") : renderEmpty("Идей пока нет. Заполни бриф слева и нажми «Сгенерировать материалы».")}
+                  <div class="ideas" style="margin-top:18px;">
+                    ${state.ideas.length ? state.ideas.map(renderIdea).join("") : renderEmpty("Идей пока нет. Заполни бриф слева и нажми Сгенерировать.")}
                   </div>
                 </div>
               </div>
 
-              <div class="panel result-shell">
+              <div class="panel">
                 <div class="pad">
                   <div class="section-head">
                     <div>
-                      <div class="kicker">Редактор</div>
-                      <h2 class="title">Готовый материал</h2>
+                      <div class="kicker">Шаг 03</div>
+                      <h2 class="title">Редактор выпуска</h2>
+                      <p class="text">Здесь можно докрутить заголовок, текст, теги, медиа и дату публикации.</p>
                     </div>
                     <span class="chip info">${escapeHtml(content.format)}</span>
                   </div>
 
-                  <div class="platforms">
+                  <div class="platforms" style="margin-top:18px;">
                     ${Object.keys(platforms).map(renderPlatform).join("")}
                   </div>
 
@@ -1258,7 +1957,7 @@
                       </label>
                       <label class="field">
                         <span class="label">Медиа</span>
-                        <div class="media-attach-row">
+                        <div class="select-media-row">
                           <select class="select" data-action="select-media">
                             <option value="">Без медиа</option>
                             ${state.media.map((item) => `<option value="${escapeHtml(item.id)}" ${state.selectedMediaId === item.id ? "selected" : ""}>${escapeHtml(item.name)}</option>`).join("")}
@@ -1283,6 +1982,8 @@
           </section>
         `;
       }
+
+
 
       
 function renderMedia() {
