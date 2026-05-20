@@ -26,6 +26,10 @@ loadPackedEnvVariable("logi");
 loadPackedEnvVariable("LOGI");
 loadPackedEnvVariable("TIMEWEB_ENV");
 
+function looksLikeJwt(value) {
+  return /^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(String(value || "").trim());
+}
+
 process.on("uncaughtException", (err) => {
   console.error("КРИТИЧЕСКАЯ ОШИБКА ПРИ СТАРТЕ:", err);
 });
@@ -42,8 +46,12 @@ const MAX_UPLOAD_MB = Number(process.env.MAX_UPLOAD_MB || 200);
 const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 180000);
 const AI_MAX_TOKENS = Number(process.env.AI_MAX_TOKENS || 8000);
 
-const TIMEWEB_API_KEY = process.env.TIMEWEB_API_KEY || process.env.TIMEWEB_KEY || "";
-const TIMEWEB_AGENT_ID = process.env.TIMEWEB_AGENT_ID || "";
+const TIMEWEB_API_KEY =
+  process.env.TIMEWEB_API_KEY ||
+  process.env.TIMEWEB_KEY ||
+  (looksLikeJwt(process.env.logi) ? process.env.logi.trim() : "") ||
+  (looksLikeJwt(process.env.LOGI) ? process.env.LOGI.trim() : "");
+const TIMEWEB_AGENT_ID = process.env.TIMEWEB_AGENT_ID || "40f010e8-9dd7-473c-812f-81b65aba981f";
 
 let DATA_DIR = process.env.DATA_DIR;
 
