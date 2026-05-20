@@ -494,13 +494,64 @@
     .section-head { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 18px; min-width: 0; }
     .section-head > div { min-width: 0; }
     .plan-box {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px dashed rgba(255,255,255,.13);
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 20px;
       display: grid;
-      gap: var(--gap-sm);
+      gap: 16px;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,.05);
     }
-    .plan-title { font-size: 12px; font-weight: 950; text-transform: uppercase; letter-spacing: .12em; color: var(--cyan); }
+    .plan-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--cyan); margin-bottom: 2px; }
+    .placement-picker {
+      display: flex;
+      gap: 8px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 4px;
+      border-radius: 14px;
+      width: 100%;
+    }
+    .placement-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .placement-btn:hover {
+      background: rgba(255,255,255,.02);
+      color: #fff;
+    }
+    .placement-btn.active {
+      background: linear-gradient(135deg, #7c5cff, #35d7ff);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(124,92,255,.25);
+    }
+    .placement-btn .platform-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .placement-btn .badge-tg { background: #24A1DE; }
+    .placement-btn .badge-ig { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .placement-btn .badge-yt { background: #FF0000; }
     .result-grid { display: grid; gap: var(--gap); }
     .idea-shell, .result-shell { background: rgba(255,255,255,.052); }
     .media-attach-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; min-width: 0; }
@@ -1105,12 +1156,30 @@
     }
 
     .plan-box {
-      border-color: rgba(23,23,23,.12) !important;
-      background:
-        linear-gradient(rgba(23,23,23,.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(23,23,23,.035) 1px, transparent 1px),
-        #f8f2e7 !important;
-      background-size: 24px 24px, 24px 24px, auto !important;
+      border: 1px solid rgba(23,23,23,.08) !important;
+      background: rgba(255,255,255,.5) !important;
+      border-radius: 20px !important;
+      padding: 20px !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,.02) !important;
+    }
+    body.logged-in .plan-title {
+      color: #7c5cff !important;
+    }
+    body.logged-in .placement-picker {
+      background: rgba(23,23,23,.03) !important;
+      border-color: rgba(23,23,23,.08) !important;
+    }
+    body.logged-in .placement-btn {
+      color: rgba(23,23,23,.56) !important;
+    }
+    body.logged-in .placement-btn:hover {
+      background: rgba(23,23,23,.02) !important;
+      color: #171717 !important;
+    }
+    body.logged-in .placement-btn.active {
+      background: linear-gradient(135deg, #7c5cff, #35d7ff) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(124,92,255,.25) !important;
     }
 
     .ideas {
@@ -1495,7 +1564,7 @@
         planner: {
           publishDate: undefined,
           publishTime: undefined,
-          placement: "Telegram-канал",
+          placement: "Telegram",
           goal: "получить заявку",
           reason: "",
           formatNote: ""
@@ -1907,7 +1976,7 @@
                       ${renderPlannerInput("publishDate", "Дата", planner.publishDate, "", "date")}
                       ${renderPlannerInput("publishTime", "Время", planner.publishTime, "", "time")}
                     </div>
-                    ${renderPlannerInput("placement", "Куда публикуем", planner.placement, "Например: Telegram-канал, Shorts, Reels")}
+                    ${renderPlacementPicker(planner.placement)}
                     ${renderPlannerInput("goal", "Зачем публикуем", planner.goal, "Например: получить заявку, прогреть, собрать подписки")}
                     ${renderPlannerInput("reason", "Почему это сработает", planner.reason, "Например: закрываем страх цены перед заявкой")}
                     ${renderPlannerInput("formatNote", "Особые требования", planner.formatNote, "Например: без юмора, 25 секунд, больше боли")}
@@ -2325,6 +2394,37 @@ function renderMedia() {
 
       function renderPlannerInput(name, label, value, placeholder = "", type = "text") {
         return `<label class="field"><span class="label">${escapeHtml(label)}</span><input class="input" type="${escapeHtml(type)}" data-action="planner-input" name="${escapeHtml(name)}" value="${escapeHtml(value || "")}" placeholder="${escapeHtml(placeholder)}" autocomplete="off" /></label>`;
+      }
+
+      function renderPlacementPicker(value) {
+        let activeVal = "Telegram";
+        if (value) {
+          const v = String(value).toLowerCase();
+          if (v.includes("tele") || v.includes("тг")) activeVal = "Telegram";
+          else if (v.includes("inst") || v.includes("инст") || v.includes("reels")) activeVal = "Instagram";
+          else if (v.includes("yout") || v.includes("ютуб") || v.includes("shorts")) activeVal = "YouTube";
+          else activeVal = value;
+        }
+
+        const options = [
+          { id: "Telegram", name: "Telegram", icon: "TG", cls: "tg" },
+          { id: "Instagram", name: "Instagram", icon: "IG", cls: "ig" },
+          { id: "YouTube", name: "YouTube", icon: "YT", cls: "yt" }
+        ];
+
+        return `
+          <div class="field">
+            <span class="label">Куда публикуем</span>
+            <div class="placement-picker">
+              ${options.map(opt => `
+                <button type="button" class="placement-btn ${activeVal === opt.id ? "active" : ""}" data-action="set-placement" data-value="${opt.id}">
+                  <span class="platform-badge badge-${opt.cls}">${opt.icon}</span>
+                  ${opt.name}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
       }
 
       function renderSecretInput(name, label, value, placeholder = "") {
@@ -2999,7 +3099,7 @@ function renderMedia() {
             state.planner = {
               publishDate: "",
               publishTime: "",
-              placement: "Telegram-канал",
+              placement: "Telegram",
               goal: "получить заявку",
               reason: "",
               formatNote: ""
@@ -3010,6 +3110,12 @@ function renderMedia() {
             
             render();
           }
+          return;
+        }
+        if (action === "set-placement") {
+          state.planner.placement = target.dataset.value;
+          saveState();
+          render();
           return;
         }
         if (action === "clear-queue") { if (confirm("Очистить очередь?")) { state.queue = []; render(); } return; }
