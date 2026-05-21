@@ -8,7 +8,7 @@
   <meta name="description" content="Контент-завод: AI-генерация идей, медиа, очередь и публикация в Telegram." />
 
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap");
 
     :root {
       color-scheme: light;
@@ -784,8 +784,6 @@
       --fast: .18s ease;
     }
 
-    @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap");
-
     html { background: #f6f3eb !important; }
 
     body {
@@ -1540,6 +1538,481 @@
     }
   </style>
 
+
+  <style id="sohne-final-fixes">
+    /* === Финальный слой правок: Sohne-like визуал + технические фиксы === */
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .auth {
+      min-height: 100svh;
+    }
+
+    .landing-hero {
+      min-width: 0;
+      position: relative;
+    }
+
+    .hero-title {
+      font-size: clamp(46px, 6.6vw, 112px) !important;
+      line-height: .92 !important;
+      letter-spacing: -.078em !important;
+      max-width: 760px;
+    }
+
+    .hero-title .accent,
+    .title-xl .mark-yellow {
+      color: #f3d547 !important;
+      text-shadow: 0 10px 34px rgba(243, 213, 71, .22);
+    }
+
+    .hero-subtitle {
+      max-width: 620px !important;
+      color: rgba(23,23,23,.62) !important;
+    }
+
+    .auth-card {
+      border-radius: 32px !important;
+      background:
+        linear-gradient(180deg, rgba(23,23,23,.92), rgba(23,23,23,.84)),
+        linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px) !important;
+      background-size: auto, 28px 28px, 28px 28px !important;
+      color: #fff !important;
+      box-shadow: 0 34px 90px rgba(23,23,23,.24) !important;
+    }
+
+    .auth-card .auth-title,
+    .auth-card .auth-text,
+    .auth-card .label {
+      color: #fff !important;
+    }
+
+    .auth-card .auth-text,
+    .auth-card .label {
+      opacity: .72;
+    }
+
+    .auth-card .input {
+      background: rgba(255,255,255,.10) !important;
+      color: #fff !important;
+      border-color: rgba(255,255,255,.18) !important;
+    }
+
+    .auth-card .input::placeholder {
+      color: rgba(255,255,255,.42) !important;
+    }
+
+    .auth-card .input:focus {
+      border-color: rgba(243,213,71,.72) !important;
+      box-shadow: 0 0 0 4px rgba(243,213,71,.14) !important;
+    }
+
+    .toggle-secret {
+      color: rgba(23,23,23,.50) !important;
+    }
+
+    .toggle-secret:hover {
+      background: rgba(23,23,23,.06) !important;
+      color: #171717 !important;
+    }
+
+    .auth-card .toggle-secret {
+      color: rgba(255,255,255,.58) !important;
+    }
+
+    .auth-card .toggle-secret:hover {
+      background: rgba(255,255,255,.10) !important;
+      color: #fff !important;
+    }
+
+    .topbar {
+      background: rgba(250,246,235,.82) !important;
+      box-shadow: 0 14px 48px rgba(50,45,34,.06) !important;
+    }
+
+    .brand {
+      border-left-color: #f3d547 !important;
+    }
+
+    .panel:hover,
+    .mini-panel:hover,
+    .metric:hover,
+    .soft-card:hover {
+      border-color: rgba(23,23,23,.18) !important;
+      box-shadow: 0 24px 68px rgba(50,45,34,.13), inset 0 1px 0 rgba(255,255,255,.74) !important;
+      transform: translateY(-1px);
+    }
+
+    .sheet-hero {
+      min-height: clamp(620px, 78vh, 840px) !important;
+      display: grid !important;
+      align-content: center;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(243,213,71,.38), transparent 23%),
+        radial-gradient(circle at 88% 18%, rgba(23,23,23,.14), transparent 24%),
+        linear-gradient(rgba(23,23,23,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,23,.06) 1px, transparent 1px),
+        #f8f1df !important;
+      background-size: auto, auto, 44px 44px, 44px 44px, auto !important;
+    }
+
+    .sheet-hero::before,
+    .sheet-hero::after {
+      z-index: 1 !important;
+      display: grid !important;
+      place-items: center;
+      font-family: var(--font-display);
+      font-size: clamp(14px, 1.4vw, 22px);
+      font-weight: 700;
+      line-height: 1.04;
+      letter-spacing: -.06em;
+      white-space: pre-line;
+      text-align: center;
+      color: #171717;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.95), rgba(244,236,218,.78)) !important;
+      backdrop-filter: blur(14px);
+      pointer-events: none;
+    }
+
+    .sheet-hero::before {
+      content: "AI\A ideas";
+      left: clamp(16px, 3.8vw, 72px) !important;
+      top: clamp(58px, 7vw, 118px) !important;
+      border-radius: 28px !important;
+      transform: rotate(-8deg) !important;
+    }
+
+    .sheet-hero::after {
+      content: "ROI\A queue";
+      right: clamp(16px, 3.8vw, 72px) !important;
+      bottom: clamp(54px, 6vw, 112px) !important;
+      border-radius: 999px !important;
+      background:
+        linear-gradient(135deg, #f3d547, #fff3a0) !important;
+      transform: rotate(9deg) !important;
+    }
+
+    .sheet-hero .hero-center,
+    .sheet-hero .sheet-preview {
+      position: relative;
+      z-index: 2;
+    }
+
+    .sheet-eyebrow {
+      background: #171717 !important;
+      color: #fff !important;
+      border-color: #171717 !important;
+      box-shadow: 0 18px 42px rgba(23,23,23,.20) !important;
+    }
+
+    .title-xl {
+      max-width: 1040px !important;
+      font-size: clamp(46px, 8.6vw, 126px) !important;
+      line-height: .9 !important;
+      letter-spacing: -.085em !important;
+    }
+
+    .lead {
+      max-width: 720px !important;
+      font-size: clamp(15px, 1.35vw, 20px) !important;
+    }
+
+    .sheet-preview {
+      width: min(1040px, calc(100% - clamp(22px, 7vw, 120px))) !important;
+      background: rgba(23,23,23,.94) !important;
+      border-color: rgba(23,23,23,.28) !important;
+      box-shadow: 0 36px 92px rgba(23,23,23,.30) !important;
+    }
+
+    .sheet-preview-top {
+      background: #f3d547 !important;
+      border-bottom-color: rgba(23,23,23,.16) !important;
+    }
+
+    .sheet-preview-title {
+      color: rgba(23,23,23,.72) !important;
+    }
+
+    .sheet-grid {
+      min-width: 0 !important;
+      grid-template-columns: 1.08fr .86fr .74fr .74fr !important;
+    }
+
+    .sheet-cell {
+      border-color: rgba(255,255,255,.10) !important;
+    }
+
+    .sheet-head {
+      background: rgba(255,255,255,.07) !important;
+      color: rgba(255,255,255,.50) !important;
+    }
+
+    .sheet-body {
+      color: rgba(255,255,255,.86) !important;
+    }
+
+    .sheet-chip-mini {
+      background: #f3d547 !important;
+      color: #171717 !important;
+    }
+
+    .hero-stat {
+      background: rgba(255,255,255,.90) !important;
+      border-color: rgba(23,23,23,.14) !important;
+    }
+
+    .btn,
+    .btn:link,
+    .btn:visited {
+      text-decoration: none !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+
+    .btn:focus-visible,
+    .nav-btn:focus-visible,
+    .placement-btn:focus-visible,
+    .modal-placement-btn:focus-visible,
+    .calendar-item:focus-visible,
+    .project-card:focus-visible {
+      outline: 3px solid rgba(243,213,71,.75) !important;
+      outline-offset: 3px !important;
+    }
+
+    .btn.primary,
+    .btn.primary:link,
+    .btn.primary:visited,
+    .btn.primary:hover,
+    .btn.primary:active {
+      color: #171717 !important;
+      -webkit-text-fill-color: #171717 !important;
+      background: #f3d547 !important;
+      border-color: #f3d547 !important;
+      box-shadow: 0 18px 38px rgba(243,213,71,.28) !important;
+    }
+
+    .btn.primary:hover {
+      background: #ffe870 !important;
+      border-color: #ffe870 !important;
+    }
+
+    .nav-btn,
+    .nav-btn:link,
+    .nav-btn:visited,
+    .nav-btn:hover,
+    .nav-btn:active {
+      -webkit-text-fill-color: currentColor !important;
+      text-decoration: none !important;
+    }
+
+    .modal-placement-btn.active.active-tg,
+    .modal-placement-btn.active.active-ig,
+    .modal-placement-btn.active.active-yt {
+      color: #fff !important;
+      -webkit-text-fill-color: #fff !important;
+    }
+
+    .calendar-item,
+    .project-card {
+      color: #171717 !important;
+      -webkit-text-fill-color: #171717 !important;
+    }
+
+    .calendar-item:hover,
+    .project-card:hover {
+      background: #fff !important;
+      border-color: rgba(23,23,23,.24) !important;
+    }
+
+    .input,
+    .textarea,
+    .select {
+      min-height: 48px;
+    }
+
+    .textarea {
+      min-height: 150px;
+    }
+
+    .toast {
+      background: #171717 !important;
+      color: #fff !important;
+      box-shadow: 0 22px 70px rgba(23,23,23,.26) !important;
+    }
+
+    @media (max-width: 1280px) {
+      .topbar-inner {
+        grid-template-columns: minmax(0, 1fr) minmax(170px, 300px) !important;
+      }
+
+      .nav {
+        grid-column: 1 / -1;
+        order: 3;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .auth {
+        padding: 24px 16px 48px !important;
+        grid-template-columns: 1fr !important;
+        text-align: left !important;
+        justify-items: stretch !important;
+      }
+
+      .landing-hero {
+        align-items: flex-start !important;
+        width: 100%;
+      }
+
+      .auth-card {
+        width: 100% !important;
+      }
+
+      .sheet-hero {
+        min-height: auto !important;
+        border-radius: 28px !important;
+      }
+
+      .sheet-hero::before,
+      .sheet-hero::after {
+        display: none !important;
+      }
+
+      .hero-center {
+        padding: 26px 18px 18px !important;
+        text-align: left !important;
+        justify-items: start !important;
+      }
+
+      .hero-status-line,
+      .hero-actions,
+      .button-group {
+        justify-content: flex-start !important;
+      }
+
+      .title-xl {
+        font-size: clamp(42px, 13vw, 72px) !important;
+        letter-spacing: -.078em !important;
+      }
+
+      .hero-stats {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+      }
+
+      .sheet-preview {
+        width: calc(100% - 28px) !important;
+        margin-bottom: 16px !important;
+        border-radius: 22px !important;
+      }
+
+      .sheet-grid {
+        grid-template-columns: 1fr 1fr !important;
+      }
+
+      .sheet-cell:nth-child(4n) {
+        border-right: 1px solid rgba(255,255,255,.10) !important;
+      }
+
+      .sheet-head {
+        font-size: 10px !important;
+      }
+
+      .sheet-body {
+        font-size: 12px !important;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100% - 28px, var(--container)) !important;
+      }
+
+      .topbar-inner {
+        grid-template-columns: 1fr !important;
+      }
+
+      .nav {
+        justify-content: flex-start !important;
+        border-radius: 22px !important;
+      }
+
+      .nav-btn span {
+        display: none !important;
+      }
+
+      .pad {
+        padding: 18px !important;
+      }
+
+      .workbench,
+      .manual-ai-grid,
+      .grid-hero,
+      .layout {
+        grid-template-columns: 1fr !important;
+      }
+
+      .btn:not(.icon-only) {
+        width: 100%;
+      }
+
+      .modal-backdrop {
+        padding: 12px !important;
+      }
+
+      .modal-card {
+        max-height: 88svh !important;
+        border-radius: 24px !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .title-xl {
+        font-size: clamp(38px, 14.5vw, 58px) !important;
+      }
+
+      .sheet-grid {
+        display: block !important;
+      }
+
+      .sheet-cell {
+        display: block;
+        border-right: 0 !important;
+      }
+
+      .sheet-head {
+        display: none !important;
+      }
+
+      .sheet-body {
+        min-height: 42px;
+      }
+
+      .placement-picker,
+      .modal-placement-picker {
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+
 </head>
 
 <body>
@@ -1680,6 +2153,7 @@
           style: "острый, экспертный, без воды",
           objective: "заявки",
           openaiApiKey: "",
+          aiReady: false,
           telegramBotToken: "",
           telegramChatId: "",
           instagramAccessToken: "",
@@ -1785,12 +2259,14 @@
       }
 
       function showAuth() {
+        document.body.classList.remove("logged-in");
         el.authScreen.style.display = "grid";
         el.app.style.display = "none";
         setTimeout(() => el.emailInput.focus(), 80);
       }
 
       function showApp() {
+        document.body.classList.add("logged-in");
         el.authScreen.style.display = "none";
         el.app.style.display = "block";
         render();
@@ -2012,6 +2488,15 @@
         return content || { format: platforms[state.activePlatform]?.name || "Формат", headline: idea.title, body: idea.title, tags: "" };
       }
 
+      function canUseAi() {
+        return Boolean(
+          state.settings.aiReady ||
+          state.settings.openaiApiKey ||
+          state.settings.model ||
+          state.settings.backendStatus === "работает"
+        );
+      }
+
       function render() {
         renderNav();
         renderAccount();
@@ -2028,8 +2513,8 @@
       }
 
       function renderAccount() {
-        const keyReady = Boolean(state.settings.openaiApiKey);
-        el.accountPill.innerHTML = `${icons.key}<span>${escapeHtml(currentEmail() || "аккаунт")}</span><span class="chip ${keyReady ? "ok" : "warn"}" style="padding:4px 8px;">${keyReady ? "AI подключён" : "нет ключа"}</span>`;
+        const keyReady = canUseAi();
+        el.accountPill.innerHTML = `${icons.key}<span>${escapeHtml(currentEmail() || "аккаунт")}</span><span class="chip ${keyReady ? "ok" : "warn"}" style="padding:4px 8px;">${keyReady ? "AI готов" : "проверь AI"}</span>`;
       }
 
       function renderMain() {
@@ -2055,9 +2540,9 @@
           <section class="command-hero">
             <div class="panel sheet-hero">
               <div class="hero-center">
-                <div class="sheet-eyebrow">${icons.spark} Контент-завод · Telegram / Reels / Shorts</div>
-                <h1 class="title-xl">Контент из <span class="mark-red">брифа</span>, идей и <span class="mark-blue">календаря</span>.</h1>
-                <p class="lead">Заполняешь вводные по проекту, выбираешь площадку и время публикации. Система собирает идею, текст, сценарий и ставит материал в очередь.</p>
+                <div class="sheet-eyebrow">${icons.spark} AI content engine · Telegram / Reels / Shorts</div>
+                <h1 class="title-xl">AI-контент, который двигает <span class="mark-yellow">ROI</span>.</h1>
+                <p class="lead">Один бриф превращается в идеи, посты, сценарии и календарь публикаций. Без ручной рутины и хаоса в материалах.</p>
 
                 <div class="hero-actions">
                   <button class="btn primary" data-action="generate">${icons.spark} Сгенерировать материал</button>
@@ -2317,7 +2802,7 @@ function renderMedia() {
 
       function renderSettings() {
         const s = state.settings;
-        const aiReady = Boolean(s.openaiApiKey);
+        const aiReady = canUseAi();
         return `
           <section class="stack">
             <div class="panel">
@@ -2427,7 +2912,7 @@ function renderMedia() {
                   <div class="code-token" style="margin-top:16px; white-space:pre-wrap;">${escapeHtml(JSON.stringify({
                     account: localStorage.getItem(USER_KEY) || "неизвестно",
                     backendStatus: state.settings.backendStatus,
-                    aiKey: Boolean(state.settings.openaiApiKey),
+                    aiReady: canUseAi(),
                     telegramReady: Boolean(state.settings.telegramBotToken && state.settings.telegramChatId),
                     instagramReady: Boolean(state.settings.instagramReady),
                     youtubeConnected: Boolean(state.settings.youtubeConnected),
@@ -2501,7 +2986,7 @@ function renderMedia() {
 
       function renderCalendarItem(item) {
         return `
-          <button class="calendar-item" data-action="open-queue" data-id="${escapeHtml(item.id)}" style="color:#fff; text-align:left;">
+          <button class="calendar-item" data-action="open-queue" data-id="${escapeHtml(item.id)}" style="text-align:left;">
             <div class="calendar-time">${escapeHtml(item.publishTime || "без времени")} · ${escapeHtml(platforms[item.platform]?.name || item.platform)}</div>
             <div class="calendar-copy">${escapeHtml(shorten(item.title, 72))}</div>
             <div class="calendar-meta">${escapeHtml(item.goal || "цель не указана")}${item.reason ? " · " + escapeHtml(shorten(item.reason, 70)) : ""}</div>
@@ -2678,7 +3163,7 @@ function renderMedia() {
 
       function renderProjectCard(project) {
         return `
-          <button class="project-card ${project.id === state.activeProjectId ? "" : ""}" data-action="select-project" data-id="${escapeHtml(project.id)}" style="width:100%; color:#fff; text-align:left; ${project.id === state.activeProjectId ? "border-color:rgba(69,211,255,.42); background:rgba(69,211,255,.09);" : ""}">
+          <button class="project-card ${project.id === state.activeProjectId ? "" : ""}" data-action="select-project" data-id="${escapeHtml(project.id)}" style="width:100%; text-align:left; ${project.id === state.activeProjectId ? "border-color:rgba(23,23,23,.28); background:rgba(255,213,74,.22);" : ""}">
             <div class="icon-box">${icons.projects}</div>
             <div class="item-body">
               <div class="item-title">${escapeHtml(project.name)}</div>
@@ -2738,7 +3223,21 @@ function renderMedia() {
         if (!token()) return;
         try {
           const data = await request("/api/config");
-          state.settings.openaiApiKey = data.openaiApiKey || state.settings.openaiApiKey || "";
+          const aiFlag = Boolean(
+            data.aiReady ??
+            data.agentReady ??
+            data.openaiReady ??
+            data.openaiConfigured ??
+            data.hasOpenAiKey ??
+            data.hasOpenAIKey ??
+            data.hasTimewebAgent ??
+            data.timewebAgentReady ??
+            data.openaiApiKey ??
+            data.model ??
+            state.settings.aiReady
+          );
+          state.settings.aiReady = aiFlag;
+          state.settings.openaiApiKey = data.openaiApiKey || "";
           state.settings.telegramBotToken = data.telegramBotToken || state.settings.telegramBotToken || "";
           state.settings.telegramChatId = data.telegramChatId ?? state.settings.telegramChatId;
           state.settings.model = data.model || state.settings.model || "";
@@ -2829,19 +3328,12 @@ function renderMedia() {
       }
 
       async function checkAiKey() {
-        if (!state.settings.openaiApiKey) {
-          addLog("warn", "Проверка не запущена: ИИ-подключение не настроено на сервере.");
-          showToast("Соединение с ИИ не настроено");
-          render();
-          return;
-        }
-
         setBusy(true);
         showToast("Проверяю ИИ-соединение...");
         try {
           const data = await request("/api/ai/test", {
             method: "POST",
-            body: { openaiApiKey: state.settings.openaiApiKey },
+            body: state.settings.openaiApiKey ? { openaiApiKey: state.settings.openaiApiKey } : {},
             timeoutMs: 50000
           });
           addLog("ok", "Соединение с ИИ успешно установлено.", JSON.stringify(data, null, 2));
@@ -2859,14 +3351,6 @@ function renderMedia() {
       }
 
       async function generate() {
-        if (!state.settings.openaiApiKey) {
-          state.activeTab = "settings";
-          addLog("warn", "Генерация не запущена: не настроено ИИ-подключение на сервере.");
-          showToast("Сначала настройте ИИ на сервере");
-          render();
-          return;
-        }
-
         setBusy(true);
         showGenerationOverlay();
         showToast("Запрос к ИИ-серверу...");
