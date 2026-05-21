@@ -946,9 +946,9 @@
       position: absolute;
       width: clamp(110px, 14vw, 200px);
       aspect-ratio: 1;
-      border: 1px solid rgba(23,23,23,.14) !important;
-      border-radius: clamp(20px, 3vw, 34px) !important;
-      box-shadow: 0 24px 54px rgba(50,45,34,.12) !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
       z-index: -1;
       pointer-events: none;
       opacity: 0.88;
@@ -957,9 +957,7 @@
     .sheet-hero::before {
       left: clamp(18px, 4vw, 68px);
       top: clamp(62px, 8vw, 118px);
-      background:
-        url('/uploads/hero_cube.png') no-repeat center / contain,
-        linear-gradient(135deg, rgba(255,255,255,.96), rgba(246,239,224,.78)) !important;
+      background: url('/uploads/hero_cube.png') no-repeat center / contain !important;
       transform: rotate(-10deg);
       animation: float-slow-left 9s ease-in-out infinite;
     }
@@ -967,9 +965,7 @@
     .sheet-hero::after {
       right: clamp(18px, 4vw, 68px);
       bottom: clamp(60px, 7vw, 114px);
-      background:
-        url('/uploads/hero_clock.png') no-repeat center / contain,
-        linear-gradient(135deg, rgba(255,255,255,.96), rgba(246,239,224,.78)) !important;
+      background: url('/uploads/hero_clock.png') no-repeat center / contain !important;
       transform: rotate(12deg);
       animation: float-slow-right 10s ease-in-out infinite;
     }
