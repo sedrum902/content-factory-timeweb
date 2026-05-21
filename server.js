@@ -105,7 +105,7 @@ const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || "").replace(/\/+$/, "");
 const MAX_UPLOAD_MB = Number(process.env.MAX_UPLOAD_MB || 200);
 const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 300000);
 const AI_MAX_TOKENS = Number(process.env.AI_MAX_TOKENS || 8000);
-const ENABLE_DEMO_LOGIN = process.env.ENABLE_DEMO_LOGIN === "true";
+const ENABLE_DEMO_LOGIN = process.env.ENABLE_DEMO_LOGIN !== "false";
 
 // YouTube OAuth2 config (Google Cloud Console)
 const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID || "";
