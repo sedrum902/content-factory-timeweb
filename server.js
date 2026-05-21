@@ -178,6 +178,13 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(uploadsDir));
 
+for (const iconFile of ["favicon.png", "favicon-32x32.png", "favicon-16x16.png", "apple-touch-icon.png"]) {
+  app.get(`/${iconFile}`, (req, res) => {
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.sendFile(path.join(__dirname, iconFile));
+  });
+}
+
 const upload = multer({
   dest: uploadsDir,
   limits: {
