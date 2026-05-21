@@ -105,6 +105,7 @@ const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || "").replace(/\/+$/, "");
 const MAX_UPLOAD_MB = Number(process.env.MAX_UPLOAD_MB || 200);
 const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 300000);
 const AI_MAX_TOKENS = Number(process.env.AI_MAX_TOKENS || 8000);
+const ENABLE_DEMO_LOGIN = process.env.ENABLE_DEMO_LOGIN === "true";
 
 // YouTube OAuth2 config (Google Cloud Console)
 const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID || "";
@@ -164,9 +165,15 @@ if (!APP_SECRET) {
 
 const corsOrigin = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map((item) => item.trim()).filter(Boolean)
-  : true;
+  : process.env.NODE_ENV === "production" ? false : true;
 
 app.use(cors({ origin: corsOrigin, credentials: true }));
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(uploadsDir));
@@ -179,7 +186,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowedMimeRegex = /^(image|video)\//i;
     const allowedExts = [
-      ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".heic",
+      ".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic",
       ".mp4", ".mov", ".avi", ".webm", ".mkv", ".mpeg", ".mpg", ".3gp"
     ];
     
@@ -646,7 +653,7 @@ function normalizeIdeas(data) {
 
   return ideas.map((item, index) => {
     const title = String(item.title || item.hook || item.headline || item.name || `Идея ${index + 1}`).trim();
-    const angle = String(item.angle || item.type || "AI-угол").trim();
+    const angle = String(item.angle || item.type || "ИИ-угол").trim();
     const score = safeScore(item.score, 90 - index);
     const pillar = String(item.pillar || item.category || item.rubric || "Контент").trim();
     const rawFormats = item.formats || {};
@@ -737,7 +744,7 @@ function fallbackIdeasFromText(text, ideaCount, project = {}) {
       angle: index % 2 ? "Разбор ошибки" : "Боль клиента",
       score: 90 - index,
       pillar: project.common || "Контент",
-      status: "Собрано из ответа AI",
+      status: "Собрано из ответа ИИ",
       formats: {
         telegram: {
           format: "Пост",
@@ -760,6 +767,94 @@ function fallbackIdeasFromText(text, ideaCount, project = {}) {
       }
     };
   });
+}
+
+function defaultWorkspace() {
+  return {
+    activeProjectId: "p_1",
+    activePlatform: "telegram",
+    selectedIdeaId: "",
+    selectedMediaId: "",
+    planner: {
+      placement: "Telegram",
+      goal: "получить заявку",
+      reason: "",
+      formatNote: ""
+    },
+    projects: [
+      {
+        id: "p_1",
+        name: "Новый проект",
+        briefText: "",
+        status: "активный"
+      }
+    ],
+    ideas: [],
+    media: [],
+    queue: [],
+    logs: []
+  };
+}
+
+function sanitizeWorkspace(input = {}) {
+  const base = defaultWorkspace();
+  const workspace = {
+    activeProjectId: String(input.activeProjectId || base.activeProjectId),
+    activePlatform: ["telegram", "instagram", "youtube"].includes(input.activePlatform)
+      ? input.activePlatform
+      : base.activePlatform,
+    selectedIdeaId: String(input.selectedIdeaId || ""),
+    selectedMediaId: String(input.selectedMediaId || ""),
+    planner: {
+      ...base.planner,
+      ...(input.planner && typeof input.planner === "object" ? input.planner : {})
+    },
+    projects: Array.isArray(input.projects) && input.projects.length ? input.projects : base.projects,
+    ideas: Array.isArray(input.ideas) ? input.ideas.slice(0, 50) : [],
+    media: Array.isArray(input.media) ? input.media.slice(0, 300) : [],
+    queue: Array.isArray(input.queue) ? input.queue.slice(0, 300) : [],
+    logs: Array.isArray(input.logs) ? input.logs.slice(0, 120) : []
+  };
+
+  workspace.queue = workspace.queue.map((post) => {
+    const media = workspace.media.find((item) => item.id && item.id === post.mediaId) || {};
+    const publishDate = post.publishDate || datePartServer(post.scheduledAt);
+    const publishTime = post.publishTime || timePartServer(post.scheduledAt);
+    return {
+      ...post,
+      id: String(post.id || crypto.randomUUID()),
+      platform: ["telegram", "instagram", "youtube"].includes(post.platform) ? post.platform : "telegram",
+      status: post.status || (post.state === "Опубликовано" ? "published" : "scheduled"),
+      state: post.state || statusLabel(post.status || "scheduled"),
+      publishDate,
+      publishTime,
+      scheduledAt: post.scheduledAt || [publishDate, publishTime].filter(Boolean).join("T"),
+      mediaUrl: post.mediaUrl || media.url || "",
+      mediaType: post.mediaType || media.type || ""
+    };
+  });
+
+  return workspace;
+}
+
+function datePartServer(value) {
+  return String(value || "").slice(0, 10);
+}
+
+function timePartServer(value) {
+  const text = String(value || "");
+  return text.includes("T") ? text.split("T")[1]?.slice(0, 5) || "" : "";
+}
+
+function statusLabel(status) {
+  const map = {
+    draft: "Черновик",
+    scheduled: "Запланировано",
+    publishing: "Публикуется",
+    published: "Опубликовано",
+    error: "Ошибка"
+  };
+  return map[status] || "Запланировано";
 }
 
 function withTimeout(promise, ms, label) {
@@ -841,8 +936,7 @@ app.post("/api/auth/login", (req, res) => {
   const password = String(req.body?.password || "");
   const store = loadStore();
 
-  // Автоматическая регистрация для администратора кубик/кубик
-  if (email === "kubik" && password === "kubik") {
+  if (ENABLE_DEMO_LOGIN && email === "kubik" && password === "kubik") {
     let kubikUser = store.users.find((item) => item.email === "kubik");
     if (!kubikUser) {
       kubikUser = {
@@ -893,6 +987,69 @@ app.get("/api/config", requireAuth, (req, res) => {
     maxUploadMb: MAX_UPLOAD_MB,
     ...settings
   });
+});
+
+app.get("/api/workspace", requireAuth, (req, res) => {
+  const workspace = sanitizeWorkspace(req.user.workspace || {
+    projects: req.user.projects,
+    ideas: req.user.ideas,
+    media: req.user.media,
+    queue: req.user.queue
+  });
+
+  res.json({
+    ok: true,
+    workspace
+  });
+});
+
+app.put("/api/workspace", requireAuth, (req, res) => {
+  try {
+    const user = req.store.users.find((item) => item.id === req.user.id);
+    if (!user) return res.status(401).json({ error: "Аккаунт не найден. Войди заново." });
+
+    const workspace = sanitizeWorkspace(req.body?.workspace || {});
+    user.workspace = workspace;
+    user.queue = workspace.queue;
+    user.updatedAt = new Date().toISOString();
+    saveStore(req.store);
+
+    res.json({
+      ok: true,
+      workspace
+    });
+  } catch (error) {
+    console.error("workspace save error:", error);
+    res.status(500).json({ error: "Не удалось сохранить рабочее пространство: " + error.message });
+  }
+});
+
+app.post("/api/queue", requireAuth, (req, res) => {
+  try {
+    const user = req.store.users.find((item) => item.id === req.user.id);
+    if (!user) return res.status(401).json({ error: "Аккаунт не найден. Войди заново." });
+
+    const workspace = sanitizeWorkspace(user.workspace || {});
+    const post = sanitizeWorkspace({
+      ...workspace,
+      queue: [req.body?.post || {}]
+    }).queue[0];
+
+    workspace.queue = [post, ...workspace.queue.filter((item) => item.id !== post.id)].slice(0, 300);
+    user.workspace = workspace;
+    user.queue = workspace.queue;
+    user.updatedAt = new Date().toISOString();
+    saveStore(req.store);
+
+    res.json({
+      ok: true,
+      post,
+      queue: workspace.queue
+    });
+  } catch (error) {
+    console.error("queue save error:", error);
+    res.status(500).json({ error: "Не удалось сохранить публикацию: " + error.message });
+  }
 });
 
 app.post("/api/config", requireAuth, (req, res) => {
@@ -1424,7 +1581,7 @@ app.post("/api/publish/instagram", requireAuth, async (req, res) => {
 
     if (!instagramAccessToken || !instagramUserId) {
       return res.status(400).json({
-        error: "Instagram не подключён. Добавь Access Token и User ID в настройках."
+        error: "Instagram не подключён. Добавь токен доступа и ID пользователя в настройках."
       });
     }
 
@@ -1634,7 +1791,7 @@ app.post("/api/publish/youtube", requireAuth, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// SCHEDULER — автопостинг из очереди (каждые 60 секунд)
+// Планировщик автопостинга из очереди, каждые 60 секунд
 // ─────────────────────────────────────────────────────────────
 async function runScheduledPublishing() {
   try {
@@ -1646,6 +1803,7 @@ async function runScheduledPublishing() {
       let changed = false;
 
       for (const post of queue) {
+        if (!post.status) post.status = post.state === "Опубликовано" ? "published" : "scheduled";
         if (post.status !== "scheduled" || !post.scheduledAt) continue;
         const postTime = new Date(post.scheduledAt);
         if (postTime > now) continue; // Not yet time
@@ -1660,7 +1818,7 @@ async function runScheduledPublishing() {
 
             const text = [post.title, "", post.body, "", post.tags].filter(Boolean).join("\n").slice(0, 4096);
             await telegramCall("sendMessage", { chat_id: telegramChatId, text }, telegramBotToken);
-            post.status = "published"; post.publishedAt = new Date().toISOString();
+            post.status = "published"; post.state = statusLabel(post.status); post.publishedAt = new Date().toISOString();
 
           } else if (platform === "instagram") {
             const { instagramAccessToken, instagramUserId } = userSettings;
@@ -1669,7 +1827,7 @@ async function runScheduledPublishing() {
 
             const caption = [post.title, "", post.body, "", post.tags].filter(Boolean).join("\n").slice(0, 2200);
             await instagramPublishReel(instagramAccessToken, instagramUserId, post.mediaUrl, caption);
-            post.status = "published"; post.publishedAt = new Date().toISOString();
+            post.status = "published"; post.state = statusLabel(post.status); post.publishedAt = new Date().toISOString();
 
           } else if (platform === "youtube") {
             const { youtubeRefreshToken } = userSettings;
@@ -1692,13 +1850,14 @@ async function runScheduledPublishing() {
               },
               media: { body: fs.createReadStream(localPath) }
             });
-            post.status = "published"; post.publishedAt = new Date().toISOString();
+            post.status = "published"; post.state = statusLabel(post.status); post.publishedAt = new Date().toISOString();
           }
 
           changed = true;
           console.log(`[Scheduler] ${platform} published for user ${user.email}: ${post.title}`);
         } catch (pubErr) {
           post.status = "error";
+          post.state = statusLabel(post.status);
           post.lastError = String(pubErr.message || "Ошибка публикации");
           changed = true;
           console.error(`[Scheduler] ${platform} error for user ${user.email}:`, pubErr.message);
@@ -1742,6 +1901,7 @@ app.get("*", (req, res) => {
 
 function seedKubikUser() {
   try {
+    if (!ENABLE_DEMO_LOGIN) return;
     const store = loadStore();
     const kubikExists = store.users.some((item) => item.email === "kubik");
     if (!kubikExists) {

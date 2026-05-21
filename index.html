@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Контент-завод</title>
   <link rel="icon" type="image/png" href="favicon.png" />
-  <meta name="description" content="Контент-завод: AI-генерация идей, медиа, очередь и публикация в Telegram." />
+  <meta name="description" content="Контент-завод: ИИ-генерация идей, медиа, очередь и публикация в Telegram." />
 
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap");
 
     :root {
       color-scheme: dark;
@@ -58,6 +58,7 @@
 
     button, input, textarea, select { font: inherit; }
     button { cursor: pointer; }
+    :focus-visible { outline: 3px solid rgba(94,140,255,.42); outline-offset: 3px; }
     button:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
     a { color: inherit; }
     svg { flex: 0 0 auto; }
@@ -781,15 +782,13 @@
       --radius: 26px;
       --radius-sm: 16px;
       --shadow: 0 28px 70px rgba(50, 45, 34, .13);
-      --font: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --font-display: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font: "Plus Jakarta Sans", Arial, sans-serif;
+      --font-display: "Bricolage Grotesque", "Plus Jakarta Sans", Arial, sans-serif;
       --container: 1500px;
       --pad: clamp(18px, 2.2vw, 34px);
       --gap: clamp(14px, 1.55vw, 24px);
       --fast: .18s ease;
     }
-
-    @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap");
 
     html { background: #f6f3eb !important; }
 
@@ -1052,6 +1051,14 @@
     .sheet-dots i { width: 10px; height: 10px; border-radius: 50%; background: #ef5b50; display: block; }
     .sheet-dots i:nth-child(2) { background: #efb647; }
     .sheet-dots i:nth-child(3) { background: #4abf7a; }
+
+    .sheet-preview-title,
+    .sheet-cell,
+    .code-token,
+    .log-meta,
+    .modal-pre {
+      font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
 
     .sheet-preview-title {
       color: rgba(23,23,23,.55);
@@ -1543,6 +1550,78 @@
       color: rgba(255, 255, 255, 0.7);
       margin: 0;
     }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4abf7a;
+      box-shadow: 0 0 0 5px rgba(74,191,122,.14);
+      flex: 0 0 auto;
+    }
+
+    .auth {
+      isolation: isolate;
+    }
+
+    .auth::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(239,91,80,.16), transparent 28%),
+        radial-gradient(circle at 82% 20%, rgba(94,140,255,.14), transparent 30%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .auth-card {
+      background: rgba(255,255,255,.86) !important;
+      border-color: rgba(23,23,23,.13) !important;
+      color: #171717 !important;
+    }
+
+    .auth-card .auth-title,
+    .auth-card .auth-text,
+    .auth-card .label {
+      color: #171717 !important;
+    }
+
+    .auth-card .auth-text {
+      color: rgba(23,23,23,.62) !important;
+    }
+
+    .auth-card .label {
+      color: rgba(23,23,23,.46) !important;
+    }
+
+    .btn,
+    .nav-btn,
+    .calendar-item,
+    .platform,
+    .idea {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:focus-visible,
+    .nav-btn:focus-visible,
+    .input:focus-visible,
+    .textarea:focus-visible,
+    .select:focus-visible {
+      outline: 3px solid rgba(94,140,255,.28);
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+      }
+    }
   </style>
 
 </head>
@@ -1552,8 +1631,8 @@
 
   <section class="auth" id="authScreen">
     <div class="landing-hero">
-      <h1 class="hero-title">Умножайте <span class="accent">ROI</span> <br/>вашего контента</h1>
-      <p class="hero-subtitle">Профессиональный AI-ассистент для маркетологов, агентств и SaaS. Генерируйте посты, сценарии Reels и управляйте контентом в пару кликов.</p>
+      <h1 class="hero-title">Контент-план, посты и сценарии <br/>из одного брифа</h1>
+      <p class="hero-subtitle">Инструмент для маркетолога: собирает идеи, тексты, короткие сценарии, медиа и календарь публикаций в одном рабочем окне.</p>
     </div>
 
     <div class="auth-card">
@@ -1562,8 +1641,8 @@
 
       <form class="form" id="authForm">
         <label class="field">
-          <span class="label">Email или Логин</span>
-          <input class="input" id="emailInput" type="text" placeholder="you@example.com или kubik" required />
+          <span class="label">Почта или логин</span>
+          <input class="input" id="emailInput" type="text" placeholder="почта или логин" required />
         </label>
 
         <label class="field">
@@ -1613,7 +1692,7 @@
       const TOKEN_KEY = "cf_full_token_v2";
       const USER_KEY = "cf_full_user_v2";
       const STORE_KEY = "cf_ui_clean_state_v1";
-      const SECRET_FIELDS = ["openaiApiKey", "telegramBotToken"];
+      const SECRET_FIELDS = ["openaiApiKey", "telegramBotToken", "instagramAccessToken"];
 
       const el = {
         authScreen: document.getElementById("authScreen"),
@@ -1667,8 +1746,8 @@
 
       const platforms = {
         telegram: { name: "Telegram", short: "готовый пост", icon: "TG" },
-        instagram: { name: "Instagram", short: "Reels-сценарий", icon: "IG" },
-        youtube: { name: "YouTube", short: "Shorts-сценарий", icon: "YT" }
+        instagram: { name: "Instagram", short: "сценарий видео", icon: "IG" },
+        youtube: { name: "YouTube", short: "сценарий видео", icon: "YT" }
       };
 
       const defaultState = {
@@ -1719,6 +1798,8 @@
 
       let authMode = "login";
       let state = loadState();
+      let serverSyncReady = false;
+      let serverSaveTimer = null;
 
       init();
 
@@ -1732,6 +1813,7 @@
         if (token()) {
           showApp();
           fetchConfig();
+          fetchWorkspace();
           checkBackend(false);
         } else {
           showAuth();
@@ -1771,13 +1853,14 @@
         const data = clone(state);
         SECRET_FIELDS.forEach((field) => { if (data.settings) data.settings[field] = ""; });
         localStorage.setItem(storageKey(), JSON.stringify(data));
+        scheduleWorkspaceSave();
       }
 
       function makeIdea({ id, title, angle, score, pillar, telegram, instagram, youtube, tags = "" }) {
         return {
           id: id || uid("i"),
           title: String(title || "Идея").trim(),
-          angle: String(angle || "AI-угол").trim(),
+          angle: String(angle || "ИИ-угол").trim(),
           score: Number(score || 90),
           pillar: String(pillar || "Контент").trim(),
           status: "Готово",
@@ -1790,12 +1873,15 @@
       }
 
       function showAuth() {
+        serverSyncReady = false;
+        document.body.classList.remove("logged-in");
         el.authScreen.style.display = "grid";
         el.app.style.display = "none";
         setTimeout(() => el.emailInput.focus(), 80);
       }
 
       function showApp() {
+        document.body.classList.add("logged-in");
         el.authScreen.style.display = "none";
         el.app.style.display = "block";
         render();
@@ -1850,6 +1936,7 @@
           state = loadState();
           showApp();
           await fetchConfig();
+          await fetchWorkspace();
           await checkBackend(false);
         } catch (error) {
           setAuthError(cleanError(error.message));
@@ -1860,6 +1947,7 @@
 
       function logout() {
         localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         state = loadState();
         el.passwordInput.value = "";
         showAuth();
@@ -2034,7 +2122,7 @@
 
       function renderAccount() {
         const keyReady = Boolean(state.settings.openaiApiKey);
-        el.accountPill.innerHTML = `${icons.key}<span>${escapeHtml(currentEmail() || "аккаунт")}</span><span class="chip ${keyReady ? "ok" : "warn"}" style="padding:4px 8px;">${keyReady ? "AI подключён" : "нет ключа"}</span>`;
+        el.accountPill.innerHTML = `${icons.key}<span>${escapeHtml(currentEmail() || "аккаунт")}</span><span class="chip ${keyReady ? "ok" : "warn"}" style="padding:4px 8px;">${keyReady ? "ИИ подключён" : "нет ключа"}</span>`;
       }
 
       function renderMain() {
@@ -2060,7 +2148,7 @@
           <section class="command-hero">
             <div class="panel sheet-hero">
               <div class="hero-center">
-                <div class="sheet-eyebrow">${icons.spark} Контент-завод · Telegram / Reels / Shorts</div>
+                <div class="sheet-eyebrow">${icons.spark} Контент-завод · Telegram / короткие видео</div>
                 <h1 class="title-xl">Контент из <span class="mark-red">брифа</span>, идей и <span class="mark-blue">календаря</span>.</h1>
                 <p class="lead">Заполняешь вводные по проекту, выбираешь площадку и время публикации. Система собирает идею, текст, сценарий и ставит материал в очередь.</p>
 
@@ -2088,7 +2176,7 @@
                   <div class="sheet-cell sheet-head">Статус</div>
                   <div class="sheet-cell sheet-body">${escapeHtml(project.name || "Новый проект")}</div>
                   <div class="sheet-cell sheet-body">${escapeHtml(selectedIdea()?.title || "Сначала сгенерируй идеи")}</div>
-                  <div class="sheet-cell sheet-body">${escapeHtml(content.format || "Telegram / Reels")}</div>
+                  <div class="sheet-cell sheet-body">${escapeHtml(content.format || "Telegram / видео")}</div>
                   <div class="sheet-cell sheet-body"><span class="sheet-chip-mini">готовится</span></div>
                   <div class="sheet-cell sheet-body">${escapeHtml(project.niche || "Ниша не заполнена")}</div>
                   <div class="sheet-cell sheet-body">${escapeHtml(planner.goal || "получить заявку")}</div>
@@ -2101,7 +2189,7 @@
 
           <section class="stack" style="margin-top: var(--gap);">
             ${!state.settings.openaiApiKey ? renderNotice("ИИ не настроен", "Серверная конфигурация ИИ пуста. Обратись к администратору сайта.", `<button class="btn primary small" data-action="tab" data-tab="settings">Проверить</button>`) : ""}
-            ${shouldShowRegionNotice ? renderNotice("AI-подключение недоступно", "Запрос к ИИ был отклонен. Проверь конфигурацию или обратись к администратору.", `<button class="btn primary small" data-action="tab" data-tab="settings">Проверить</button>`) : ""}
+            ${shouldShowRegionNotice ? renderNotice("ИИ-подключение недоступно", "Запрос к ИИ был отклонен. Проверь конфигурацию или обратись к администратору.", `<button class="btn primary small" data-action="tab" data-tab="settings">Проверить</button>`) : ""}
           </section>
 
           <section class="workbench">
@@ -2264,7 +2352,7 @@ function renderMedia() {
                   <div>
                     <div class="kicker">Очередь</div>
                     <h1 class="title">Календарь публикаций</h1>
-                    <p class="text">Смотри, что выходит сегодня, во сколько, куда и зачем. Telegram можно отправить сразу, Reels и Shorts остаются как готовые сценарии.</p>
+                    <p class="text">Смотри, что выходит сегодня, во сколько, куда и зачем. Telegram можно отправить сразу, короткие видео остаются как готовые сценарии.</p>
                   </div>
                   <button class="btn danger small" data-action="clear-queue">Очистить</button>
                 </div>
@@ -2329,7 +2417,7 @@ function renderMedia() {
               <div class="pad">
                 <div class="row">
                   <div>
-                    <div class="kicker">Настройки AI</div>
+                    <div class="kicker">Настройки ИИ</div>
                     <h1 class="title">Timeweb-агент</h1>
                     <p class="text">Генерация работает через подключенного агента на сервере. Пользователю не нужно вводить ключи или выбирать модели.</p>
                   </div>
@@ -2389,14 +2477,14 @@ function renderMedia() {
               <div class="panel">
                 <div class="pad">
                   <div class="kicker">Instagram</div>
-                  <h2 class="title">Reels автопостинг</h2>
-                  <p class="text">Вставь Access Token от Meta и User ID аккаунта. Нужен Instagram бизнес-аккаунт и приложение в <a href="https://developers.facebook.com" target="_blank" style="color:var(--cyan);">Meta Developers</a> с разрешением <code>instagram_business_content_publish</code>.</p>
+                  <h2 class="title">Автопостинг видео</h2>
+                  <p class="text">Вставь токен доступа от Meta и ID пользователя аккаунта. Нужен Instagram бизнес-аккаунт и приложение в <a href="https://developers.facebook.com" target="_blank" style="color:var(--cyan);">кабинете Meta</a> с разрешением <code>instagram_business_content_publish</code>.</p>
                   <div class="form" style="margin-top:22px;">
-                    ${renderSecretInput("instagramAccessToken", "Instagram Access Token", s.instagramAccessToken || "", "EAAG...")}
-                    ${renderSettingInput("instagramUserId", "Instagram User ID", s.instagramUserId || "", "17841400...")}
+                    ${renderSecretInput("instagramAccessToken", "Instagram токен доступа", s.instagramAccessToken || "", "EAAG...")}
+                    ${renderSettingInput("instagramUserId", "Instagram ID пользователя", s.instagramUserId || "", "17841400...")}
                   </div>
                   <div class="auto-tight" style="margin-top:12px;">
-                    ${renderMetric(s.instagramReady ? "подключён" : "не подключён", "Instagram статус", s.instagramReady ? "Reels API готов" : "Укажи токен и User ID")}
+                    ${renderMetric(s.instagramReady ? "подключён" : "не подключён", "Instagram статус", s.instagramReady ? "API готов" : "Укажи токен и ID пользователя")}
                   </div>
                   <div class="actions">
                     <button class="btn primary" data-action="save-instagram-config">Сохранить Instagram</button>
@@ -2407,13 +2495,13 @@ function renderMedia() {
               <div class="panel">
                 <div class="pad">
                   <div class="kicker">YouTube</div>
-                  <h2 class="title">Shorts автопостинг</h2>
-                  <p class="text">Подключи YouTube-канал через Google OAuth. Один раз нажми кнопку, авторизуйся — и сервер будет публиковать Shorts автоматически. Для работы в .env на сервере нужны <code>YOUTUBE_CLIENT_ID</code> и <code>YOUTUBE_CLIENT_SECRET</code>.</p>
+                  <h2 class="title">Автопостинг видео</h2>
+                  <p class="text">Подключи YouTube-канал через Google-авторизацию. Один раз нажми кнопку, авторизуйся, и сервер будет публиковать короткие видео автоматически. Для работы в .env на сервере нужны <code>YOUTUBE_CLIENT_ID</code> и <code>YOUTUBE_CLIENT_SECRET</code>.</p>
                   <div class="auto-tight" style="margin-top:16px;">
                     ${renderMetric(
                       s.youtubeConnected ? "подключён" : "не подключён",
                       "YouTube статус",
-                      s.youtubeChannelId ? `Канал ID: ${s.youtubeChannelId}` : (s.youtubeOAuthEnabled ? "OAuth настроен на сервере" : "Нужен YOUTUBE_CLIENT_ID в .env")
+                      s.youtubeChannelId ? `Канал ID: ${s.youtubeChannelId}` : (s.youtubeOAuthEnabled ? "авторизация настроена на сервере" : "Нужен YOUTUBE_CLIENT_ID в .env")
                     )}
                   </div>
                   <div class="actions" style="margin-top:16px;">
@@ -2724,17 +2812,95 @@ function renderMedia() {
         return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
       }
 
+      function workspacePayload() {
+        return {
+          activeProjectId: state.activeProjectId,
+          activePlatform: state.activePlatform,
+          selectedIdeaId: state.selectedIdeaId,
+          selectedMediaId: state.selectedMediaId,
+          planner: state.planner,
+          projects: state.projects,
+          ideas: state.ideas,
+          media: state.media,
+          queue: state.queue,
+          logs: state.logs
+        };
+      }
+
+      function workspaceHasContent(workspace) {
+        return Boolean(
+          (Array.isArray(workspace?.ideas) && workspace.ideas.length) ||
+          (Array.isArray(workspace?.media) && workspace.media.length) ||
+          (Array.isArray(workspace?.queue) && workspace.queue.length) ||
+          (Array.isArray(workspace?.projects) && workspace.projects.some((project) => String(project.briefText || "").trim() || project.name !== "Новый проект"))
+        );
+      }
+
+      function applyWorkspace(workspace) {
+        if (!workspace || typeof workspace !== "object") return;
+        state.activeProjectId = workspace.activeProjectId || state.activeProjectId;
+        state.activePlatform = workspace.activePlatform || state.activePlatform;
+        state.selectedIdeaId = workspace.selectedIdeaId || state.selectedIdeaId;
+        state.selectedMediaId = workspace.selectedMediaId || state.selectedMediaId;
+        state.planner = { ...state.planner, ...(workspace.planner || {}) };
+        state.projects = Array.isArray(workspace.projects) && workspace.projects.length ? workspace.projects : state.projects;
+        state.ideas = Array.isArray(workspace.ideas) ? workspace.ideas : state.ideas;
+        state.media = Array.isArray(workspace.media) ? workspace.media : state.media;
+        state.queue = Array.isArray(workspace.queue) ? workspace.queue : state.queue;
+        state.logs = Array.isArray(workspace.logs) ? workspace.logs.slice(0, 90) : state.logs;
+        ensurePlanner();
+      }
+
+      function scheduleWorkspaceSave() {
+        if (!serverSyncReady || !token()) return;
+        clearTimeout(serverSaveTimer);
+        serverSaveTimer = setTimeout(pushWorkspace, 800);
+      }
+
+      async function pushWorkspace() {
+        if (!serverSyncReady || !token()) return;
+        try {
+          await request("/api/workspace", {
+            method: "PUT",
+            body: { workspace: workspacePayload() },
+            timeoutMs: 20000
+          });
+        } catch (error) {
+          console.warn("workspace sync failed:", error.message);
+        }
+      }
+
+      async function fetchWorkspace() {
+        if (!token()) return;
+        try {
+          const data = await request("/api/workspace");
+          serverSyncReady = true;
+          if (!workspaceHasContent(data.workspace) && workspaceHasContent(workspacePayload())) {
+            await pushWorkspace();
+            render();
+            return;
+          }
+          applyWorkspace(data.workspace);
+          saveState();
+          render();
+        } catch (error) {
+          serverSyncReady = true;
+          addLog("warn", "Не удалось получить рабочее пространство: " + error.message);
+          render();
+        }
+      }
+
       async function checkBackend(withToast = true) {
         try {
           const data = await request("/api/health", { public: true });
           state.settings.backendStatus = data.ok ? "работает" : "ошибка";
-          addLog("ok", "Backend отвечает.", JSON.stringify(data, null, 2));
-          if (withToast) showToast("Backend работает");
+          addLog("ok", "Сервер отвечает.", JSON.stringify(data, null, 2));
+          if (withToast) showToast("Сервер работает");
           render();
         } catch (error) {
           state.settings.backendStatus = "ошибка";
-          addLog("bad", "Backend не отвечает: " + error.message);
-          if (withToast) showToast("Backend не отвечает");
+          addLog("bad", "Сервер не отвечает: " + error.message);
+          if (withToast) showToast("Сервер не отвечает");
           render();
         }
       }
@@ -2936,7 +3102,7 @@ function renderMedia() {
         }
       }
 
-      function addToQueue() {
+      async function addToQueue() {
         if (!selectedIdea()) {
           showToast("Сначала сгенерируй идею");
           return;
@@ -2944,7 +3110,8 @@ function renderMedia() {
         const content = selectedContent();
         const project = activeProject();
         const planner = ensurePlanner();
-        state.queue.unshift({
+        const media = state.media.find((item) => item.id === state.selectedMediaId) || null;
+        const post = {
           id: uid("q"),
           projectId: project.id,
           platform: state.activePlatform,
@@ -2952,7 +3119,10 @@ function renderMedia() {
           body: content.body,
           tags: content.tags,
           mediaId: state.selectedMediaId || "",
-          state: "Готово",
+          mediaUrl: media?.url || "",
+          mediaType: media?.type || "",
+          status: "scheduled",
+          state: "Запланировано",
           publishDate: planner.publishDate || todayInputValue(),
           publishTime: planner.publishTime || nextHourInputValue(),
           scheduledAt: `${planner.publishDate || todayInputValue()}T${planner.publishTime || nextHourInputValue()}`,
@@ -2962,12 +3132,24 @@ function renderMedia() {
           formatNote: planner.formatNote || "",
           lastResponse: "",
           createdAt: new Date().toLocaleString("ru-RU")
-        });
+        };
+
+        state.queue.unshift(post);
         addLog("ok", "Материал поставлен в календарь: " + content.headline);
-        showToast("Поставлено в календарь");
         state.activeTab = "queue";
         render();
         scrollToTop();
+
+        try {
+          const data = await request("/api/queue", { method: "POST", body: { post } });
+          state.queue = Array.isArray(data.queue) ? data.queue : state.queue;
+          showToast("Поставлено в календарь");
+          render();
+        } catch (error) {
+          addLog("bad", "Публикация сохранена только в браузере: " + error.message);
+          showToast("Календарь сохранён локально");
+          render();
+        }
       }
 
       async function publishOne(id) {
@@ -2979,11 +3161,13 @@ function renderMedia() {
 
         try {
           const data = await request("/api/publish/" + encodeURIComponent(post.platform), { method: "POST", body: { post, media } });
+          post.status = "published";
           post.state = "Опубликовано";
           post.lastResponse = JSON.stringify(data, null, 2);
           addLog("ok", "Публикация отправлена: " + post.title, JSON.stringify(data, null, 2));
           showToast("Опубликовано");
         } catch (error) {
+          post.status = "error";
           post.state = "Ошибка";
           post.lastResponse = error.message;
           addLog("bad", "Ошибка публикации: " + error.message, post.title);
@@ -3266,7 +3450,7 @@ function renderMedia() {
         if (action === "select-platform") { state.activePlatform = target.dataset.platform; render(); return; }
         if (action === "select-media-card") { state.selectedMediaId = target.dataset.id; closeModal(); showToast("Медиа выбрано"); render(); return; }
         if (action === "open-media") { openMedia(target.dataset.id); return; }
-        if (action === "delete-media") { state.media = state.media.filter((item) => item.id !== target.dataset.id); if (state.selectedMediaId === target.dataset.id) state.selectedMediaId = ""; state.queue.forEach((post) => { if (post.mediaId === target.dataset.id) post.mediaId = ""; }); render(); return; }
+        if (action === "delete-media") { state.media = state.media.filter((item) => item.id !== target.dataset.id); if (state.selectedMediaId === target.dataset.id) state.selectedMediaId = ""; state.queue.forEach((post) => { if (post.mediaId === target.dataset.id) { post.mediaId = ""; post.mediaUrl = ""; post.mediaType = ""; } }); render(); return; }
         if (action === "upload-media") { uploadMedia(); return; }
         if (action === "open-generate-photo-modal") { openGeneratePhotoModal(); return; }
         if (action === "submit-generate-photo") { generatePhotoSubmit(); return; }
