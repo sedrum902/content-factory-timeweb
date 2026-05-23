@@ -2995,7 +2995,14 @@
 
       function renderAccount() {
         const keyReady = Boolean(state.settings.openaiApiKey);
-        el.accountPill.innerHTML = `${icons.key}<span>${escapeHtml(currentEmail() || "аккаунт")}</span><span class="chip ${keyReady ? "ok" : "warn"}" style="padding:4px 8px;">${keyReady ? "ИИ подключён" : "нет ключа"}</span>`;
+        let limitHtml = "";
+        if (state.limitInfo && !state.limitInfo.isUnlimited) {
+          const remaining = state.limitInfo.remaining;
+          const limit = state.limitInfo.limit;
+          const isWarn = remaining <= 1;
+          limitHtml = `<span class="chip ${isWarn ? "bad" : "info"}" style="padding:4px 8px; font-weight:800; letter-spacing:0; font-family:var(--font);">${escapeHtml("Лимит: " + remaining + " / " + limit)}</span>`;
+        }
+        el.accountPill.innerHTML = `${icons.key}<span>${escapeHtml(currentEmail() || "аккаунт")}</span>${limitHtml}<span class="chip ${keyReady ? "ok" : "warn"}" style="padding:4px 8px;">${keyReady ? "ИИ подключён" : "нет ключа"}</span>`;
       }
 
       function renderMain() {
@@ -3817,6 +3824,7 @@ function renderMedia() {
           state.settings.youtubeConnected = Boolean(data.youtubeConnected);
           state.settings.youtubeChannelId = data.youtubeChannelId ?? state.settings.youtubeChannelId ?? "";
           state.settings.youtubeOAuthEnabled = Boolean(data.youtubeOAuthEnabled);
+          state.limitInfo = data.limitInfo || null;
           render();
         } catch (error) {
           addLog("warn", "Не удалось получить настройки аккаунта: " + error.message);
@@ -3952,6 +3960,7 @@ function renderMedia() {
           state.ideas = ideas.map((item) => ({ id: uid("i"), ...item, status: item.status || "Готово" }));
           state.selectedIdeaId = state.ideas[0]?.id || "";
           state.activeTab = "factory";
+          state.limitInfo = data.limitInfo || state.limitInfo;
           addLog("ok", "Идеи получены успешно через ИИ.", JSON.stringify(data, null, 2));
           showToast("Идеи готовы");
         } catch (error) {
@@ -4210,6 +4219,7 @@ function renderMedia() {
           if (res && res.ok && res.id) {
             state.media.push(res);
             state.selectedMediaId = res.id;
+            state.limitInfo = res.limitInfo || state.limitInfo;
             saveState();
             closeModal();
             showToast("Изображение сгенерировано и прикреплено!");

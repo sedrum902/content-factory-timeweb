@@ -595,6 +595,27 @@ function enforceGenerationLimit(req, res, next) {
   next();
 }
 
+function getLimitInfo(req) {
+  const info = {
+    limit: CLIENT_DAILY_GENERATION_LIMIT,
+    remaining: CLIENT_DAILY_GENERATION_LIMIT,
+    isUnlimited: true
+  };
+
+  if (req.user && req.user.email === CLIENT_DEMO_EMAIL) {
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const dbUser = req.store.users.find((u) => u.id === req.user.id);
+    if (dbUser) {
+      dbUser.generationTimestamps = (dbUser.generationTimestamps || []).filter((t) => t > oneDayAgo);
+      info.remaining = Math.max(0, CLIENT_DAILY_GENERATION_LIMIT - dbUser.generationTimestamps.length);
+      info.isUnlimited = false;
+    }
+  }
+
+  return info;
+}
+
 function stripAiReasoning(text) {
   return String(text || "")
     .replace(/<think>[\s\S]*?<\/think>/gi, "")
@@ -1063,6 +1084,7 @@ app.get("/api/config", requireAuth, (req, res) => {
     youtubeConnected: settings.youtubeConnected,
     youtubeOAuthEnabled: settings.youtubeOAuthEnabled,
     maxUploadMb: MAX_UPLOAD_MB,
+    limitInfo: getLimitInfo(req),
     ...settings
   });
 });
@@ -1247,9 +1269,30 @@ app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) 
       youtube: "YouTube Shorts"
     }[platform] || "все площадки";
 
+    let platformRequirements = "";
+    let jsonSchema = "";
+
+    if (platform === "telegram") {
+      platformRequirements = "- telegram.body: готовый, полноценный и вовлекающий пост для канала на 3-5 абзацев с разметкой абзацев и списков. Должен содержать: сильный хук, раскрытие боли/проблемы, конкретный факт или механику решения, экспертные выводы и мягкий призыв к действию. Пост должен быть глубоким и содержательным, а не состоять из пары сухих строк.";
+      jsonSchema = '{"ideas":[{"title":"","angle":"","score":95,"pillar":"","formats":{"telegram":{"format":"Пост","headline":"","body":"","tags":""}}}]}';
+    } else if (platform === "instagram") {
+      platformRequirements = "- instagram.body: сценарий Reels на 20-35 секунд: 4-5 кадров с таймингом, что в кадре, текст на экране, голос.";
+      jsonSchema = '{"ideas":[{"title":"","angle":"","score":95,"pillar":"","formats":{"instagram":{"format":"Сценарий","headline":"","body":"","tags":""}}}]}';
+    } else if (platform === "youtube") {
+      platformRequirements = "- youtube.body: сценарий Shorts на 20-35 секунд: хук 0-3 сек, быстрый пример, вывод, призыв.";
+      jsonSchema = '{"ideas":[{"title":"","angle":"","score":95,"pillar":"","formats":{"youtube":{"format":"Сценарий","headline":"","body":"","tags":""}}}]}';
+    } else {
+      platformRequirements = [
+        "- telegram.body: готовый, полноценный и вовлекающий пост для канала на 3-5 абзацев с разметкой абзацев и списков. Должен содержать: сильный хук, раскрытие боли/проблемы, конкретный факт или механику решения, экспертные выводы и мягкий призыв к действию.",
+        "- instagram.body: сценарий Reels на 20-35 секунд: 4-5 кадров с таймингом, что в кадре, текст на экране, голос.",
+        "- youtube.body: сценарий Shorts на 20-35 секунд: хук 0-3 сек, быстрый пример, вывод, призыв."
+      ].join("\n");
+      jsonSchema = '{"ideas":[{"title":"","angle":"","score":95,"pillar":"","formats":{"telegram":{"format":"Пост","headline":"","body":"","tags":""},"instagram":{"format":"Сценарий","headline":"","body":"","tags":""},"youtube":{"format":"Сценарий","headline":"","body":"","tags":""}}}]}';
+    }
+
     const systemPrompt = [
       "Ты контент-стратег и редактор продающего контента на русском.",
-      "Твоя задача - превращать бриф в готовые материалы для Telegram-каналов, Instagram Reels и YouTube Shorts.",
+      `Твоя задача - превращать бриф в готовые материалы только для выбранной площадки (${platformLabel}).`,
       "Пиши емко, конкретно, без воды, без англицизмов, без длинного тире.",
       "Не придумывай несуществующие факты. Если факта нет, используй аккуратную формулировку без цифр.",
       "Ответ только валидный JSON: начинается с { и заканчивается }."
@@ -1276,15 +1319,13 @@ app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) 
       "Требования:",
       "- title: до 90 символов, сильный хук.",
       "- angle и pillar: коротко.",
-      "- telegram.body: готовый, полноценный и вовлекающий пост для канала на 3-5 абзацев с разметкой абзацев и списков. Должен содержать: сильный хук, раскрытие боли/проблемы, конкретный факт или механику решения, экспертные выводы и мягкий призыв к действию. Пост должен быть глубоким и содержательным, а не состоять из пары сухих строк.",
-      "- instagram.body: сценарий Reels на 20-35 секунд: 4-5 кадров с таймингом, что в кадре, текст на экране, голос.",
-      "- youtube.body: сценарий Shorts на 20-35 секунд: хук 0-3 сек, быстрый пример, вывод, призыв.",
+      platformRequirements,
       "- Каждый формат должен быть самостоятельным, а не копией одного текста.",
       "- Учитывай площадку: Telegram читают (поэтому пиши развернуто и интересно), Reels и Shorts смотрят без долгого вступления.",
       "- Не используй слова: уникальный, профессиональный, качественный, надежный, индивидуальный подход.",
       "- Не используй символ длинного тире.",
       "",
-      'Верни строго JSON по схеме: {"ideas":[{"title":"","angle":"","score":95,"pillar":"","formats":{"telegram":{"format":"Пост","headline":"","body":"","tags":""},"instagram":{"format":"Сценарий","headline":"","body":"","tags":""},"youtube":{"format":"Сценарий","headline":"","body":"","tags":""}}}]}'
+      `Верни строго JSON по схеме: ${jsonSchema}`
     ].join("\n");
 
     const requestPayload = {
@@ -1331,7 +1372,8 @@ app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) 
       model: modelToUse,
       warning,
       rawWasJson: !warning,
-      ideas
+      ideas,
+      limitInfo: getLimitInfo(req)
     });
   } catch (error) {
     console.error("generate error:", error);
@@ -1489,7 +1531,8 @@ app.post("/api/generate-image", requireAuth, enforceGenerationLimit, async (req,
       name: originalName,
       type: "image/jpeg",
       size: buffer.length,
-      url: publicUrl
+      url: publicUrl,
+      limitInfo: getLimitInfo(req)
     });
   } catch (error) {
     console.error("POST /api/generate-image error:", error);
