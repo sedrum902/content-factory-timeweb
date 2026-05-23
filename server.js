@@ -111,6 +111,7 @@ const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "kubik";
 const CLIENT_DEMO_EMAIL = process.env.CLIENT_DEMO_EMAIL || "client";
 const CLIENT_DEMO_PASSWORD = process.env.CLIENT_DEMO_PASSWORD || "client123";
 const CLIENT_SHARED_WORKSPACE = process.env.CLIENT_SHARED_WORKSPACE !== "false";
+const CLIENT_DAILY_GENERATION_LIMIT = Number(process.env.CLIENT_DAILY_GENERATION_LIMIT || 5);
 
 // YouTube OAuth2 config (Google Cloud Console)
 const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID || "";
@@ -565,6 +566,32 @@ function requireAuth(req, res, next) {
     req.workspaceUser = user;
   }
 
+  next();
+}
+
+function enforceGenerationLimit(req, res, next) {
+  // Лимит применяется только к демонстрационному аккаунту клиента
+  if (req.user && req.user.email === CLIENT_DEMO_EMAIL) {
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+    // Ищем пользователя в store для мутации и сохранения
+    const dbUser = req.store.users.find((u) => u.id === req.user.id);
+    if (dbUser) {
+      // Очищаем старые метки времени
+      dbUser.generationTimestamps = (dbUser.generationTimestamps || []).filter((t) => t > oneDayAgo);
+
+      if (dbUser.generationTimestamps.length >= CLIENT_DAILY_GENERATION_LIMIT) {
+        return res.status(429).json({
+          error: `Превышен суточный лимит генераций. Демо-аккаунт ограничен ${CLIENT_DAILY_GENERATION_LIMIT} генерациями в день.`
+        });
+      }
+
+      // Записываем метку
+      dbUser.generationTimestamps.push(now);
+      saveStore(req.store);
+    }
+  }
   next();
 }
 
@@ -1194,7 +1221,7 @@ app.post("/api/ai/test", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/generate", requireAuth, async (req, res) => {
+app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) => {
   try {
     const timewebApiKey = TIMEWEB_API_KEY;
     const timewebAgentId = TIMEWEB_AGENT_ID;
@@ -1427,7 +1454,7 @@ async function callImageGenerator(prompt) {
   return Buffer.from(arrayBuffer);
 }
 
-app.post("/api/generate-image", requireAuth, async (req, res) => {
+app.post("/api/generate-image", requireAuth, enforceGenerationLimit, async (req, res) => {
   try {
     const { prompt } = req.body;
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
