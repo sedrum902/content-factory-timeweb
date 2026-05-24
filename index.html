@@ -2637,16 +2637,16 @@
     /* 3. SMM Flow Kanban Board */
     .kanban-board {
       display: grid;
-      grid-template-columns: repeat(4, minmax(260px, 1fr));
+      grid-template-columns: repeat(4, minmax(240px, 1fr));
       gap: var(--gap);
       overflow-x: auto;
       min-height: 520px;
       align-items: start;
-      padding-bottom: 12px;
+      padding-bottom: 16px;
     }
     .kanban-column {
       background: rgba(255, 255, 255, 0.45) !important;
-      border: 1px solid rgba(23, 23, 23, 0.08) !important;
+      border: 2px solid rgba(23, 23, 23, 0.07) !important;
       border-radius: 18px;
       padding: 14px;
       min-height: 480px;
@@ -2654,6 +2654,7 @@
       flex-direction: column;
       gap: 10px;
       min-width: 0;
+      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
     }
     .kanban-column-header {
       display: flex;
@@ -2663,13 +2664,17 @@
       padding-bottom: 10px;
       border-bottom: 2px solid rgba(23, 23, 23, 0.06);
       margin-bottom: 6px;
+      flex-shrink: 0;
     }
     .kanban-column-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 850;
       color: #171717;
       text-transform: uppercase;
       letter-spacing: .06em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .kanban-column-count {
       font-size: 11px;
@@ -2678,29 +2683,44 @@
       color: rgba(23, 23, 23, 0.55);
       padding: 2px 7px;
       border-radius: 99px;
+      flex-shrink: 0;
     }
     .kanban-card {
       border: 1px solid rgba(23, 23, 23, 0.09) !important;
       background: #ffffff !important;
       border-radius: 12px;
       padding: 12px 14px;
-      box-shadow: 0 4px 10px rgba(50, 45, 34, 0.02);
+      box-shadow: 0 2px 8px rgba(50, 45, 34, 0.04);
       cursor: grab;
-      transition: all 0.18s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .kanban-card:hover {
-      border-color: rgba(94, 140, 255, 0.28) !important;
-      box-shadow: 0 8px 18px rgba(50, 45, 34, 0.06);
-      transform: translateY(-1px);
+      border-color: rgba(94, 140, 255, 0.3) !important;
+      box-shadow: 0 6px 16px rgba(94, 140, 255, 0.1);
+      transform: translateY(-2px);
+    }
+    .kanban-card:active { cursor: grabbing; }
+    .kanban-card.is-dragging {
+      opacity: 0.45;
+      transform: scale(0.97);
+      box-shadow: none !important;
     }
     .kanban-card-title {
       font-size: 13px;
-      font-weight: 850;
+      font-weight: 800;
       color: #171717;
-      line-height: 1.3;
+      line-height: 1.35;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      min-width: 0;
     }
     .kanban-card-meta {
       display: flex;
@@ -2710,13 +2730,19 @@
       font-size: 11px;
       color: var(--soft);
       font-weight: 700;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .kanban-card-meta > span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .kanban-column.drag-over {
       border-color: #5e8cff !important;
-      background: rgba(94, 140, 255, 0.08) !important;
-      box-shadow: 0 0 22px rgba(94, 140, 255, 0.16) !important;
-      transform: translateY(-2px) scale(1.005) !important;
-      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      background: rgba(94, 140, 255, 0.07) !important;
+      box-shadow: 0 0 0 3px rgba(94, 140, 255, 0.18) inset !important;
     }
     
     /* 4. AI Copilot Panel adjacent to Editor */
@@ -2972,15 +2998,27 @@
         display: flex !important;
         overflow-x: auto !important;
         scroll-snap-type: x mandatory !important;
-        padding-bottom: 8px !important;
+        padding-bottom: 12px !important;
         -webkit-overflow-scrolling: touch;
+        gap: 12px !important;
       }
       .kanban-column {
-        flex: 0 0 min(84vw, 340px) !important;
+        flex: 0 0 min(80vw, 300px) !important;
         scroll-snap-align: start !important;
-        min-height: 420px !important;
+        min-height: 380px !important;
+        padding: 12px !important;
       }
-    }
+      .kanban-column-title {
+        font-size: 11px !important;
+        letter-spacing: .04em !important;
+      }
+      .kanban-card {
+        padding: 10px 12px !important;
+      }
+      .kanban-card-title {
+        font-size: 12px !important;
+      }
+    } /* end @media 760px */
 
     /* 5. Desktop Hamburger dropdown anchor & layout polish */
     .topbar-inner {
@@ -4079,32 +4117,48 @@ function renderMedia() {
               </div>
             </div>
 
-            <div class="kanban-board">
+            <div class="kanban-board" id="kanbanBoard">
               <!-- Column 1 -->
-              <div class="kanban-column" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragenter="this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="handleKanbanDrop(event, this, 'backlog')">
+              <div class="kanban-column" id="kb-backlog"
+                ondragover="event.preventDefault();"
+                ondragenter="kanbanDragEnter(this)"
+                ondragleave="kanbanDragLeave(this)"
+                ondrop="handleKanbanDrop(event, this, 'backlog')">
                 <div class="kanban-column-header">
                   <span class="kanban-column-title">1. Бэклог идей</span>
                   <span class="kanban-column-count">${state.ideas.length}</span>
                 </div>
                 ${state.ideas.length ? state.ideas.map((idea, idx) => `
-                  <div class="kanban-card dropping" draggable="true" ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'idea', id: '${escapeHtml(idea.id)}' }))" data-action="select-idea" data-id="${escapeHtml(idea.id)}" style="animation-delay: ${idx * 0.05}s;">
+                  <div class="kanban-card dropping"
+                    draggable="true"
+                    ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'idea', id: '${escapeHtml(idea.id)}' })); this.classList.add('is-dragging'); window._kanbanDragCard = this;"
+                    ondragend="this.classList.remove('is-dragging'); window._kanbanDragCard = null;"
+                    data-action="select-idea" data-id="${escapeHtml(idea.id)}" style="animation-delay: ${idx * 0.05}s;">
                     <div class="kanban-card-title">${escapeHtml(idea.title)}</div>
                     <div class="kanban-card-meta">
-                      <span class="chip info" style="padding:2px 6px; font-size:10px;">${escapeHtml(idea.pillar)}</span>
-                      <span>${idea.score}%</span>
+                      <span class="chip info" style="padding:2px 6px; font-size:10px;">${escapeHtml(idea.pillar || 'Идея')}</span>
+                      <span>${idea.score || 0}%</span>
                     </div>
                   </div>
                 `).join("") : renderEmpty("Нет идей — нажми «Генерация» в Фабрике")}
               </div>
 
               <!-- Column 2 -->
-              <div class="kanban-column" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragenter="this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="handleKanbanDrop(event, this, 'ready')">
+              <div class="kanban-column" id="kb-ready"
+                ondragover="event.preventDefault();"
+                ondragenter="kanbanDragEnter(this)"
+                ondragleave="kanbanDragLeave(this)"
+                ondrop="handleKanbanDrop(event, this, 'ready')">
                 <div class="kanban-column-header">
                   <span class="kanban-column-title">2. Готовые сценарии</span>
                   <span class="kanban-column-count">${state.ideas.length ? 1 : 0}</span>
                 </div>
                 ${state.ideas.length ? `
-                  <div class="kanban-card dropping" draggable="true" ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'idea', id: '${escapeHtml(selectedIdea()?.id || state.ideas[0]?.id)}' }))" data-action="tab" data-tab="factory" style="animation-delay: 0.1s;">
+                  <div class="kanban-card dropping"
+                    draggable="true"
+                    ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'idea', id: '${escapeHtml(selectedIdea()?.id || state.ideas[0]?.id)}' })); this.classList.add('is-dragging'); window._kanbanDragCard = this;"
+                    ondragend="this.classList.remove('is-dragging'); window._kanbanDragCard = null;"
+                    data-action="tab" data-tab="factory" style="animation-delay: 0.1s;">
                     <div class="kanban-card-title" style="font-weight:900;">${escapeHtml(selectedIdea()?.title || state.ideas[0]?.title)}</div>
                     <div class="kanban-card-meta">
                       <span class="chip" style="padding:2px 6px; font-size:10px; background:#171717; color:#fff;">Выпуск</span>
@@ -4115,7 +4169,11 @@ function renderMedia() {
               </div>
 
               <!-- Column 3 -->
-              <div class="kanban-column" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragenter="this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="handleKanbanDrop(event, this, 'scheduled')">
+              <div class="kanban-column" id="kb-scheduled"
+                ondragover="event.preventDefault();"
+                ondragenter="kanbanDragEnter(this)"
+                ondragleave="kanbanDragLeave(this)"
+                ondrop="handleKanbanDrop(event, this, 'scheduled')">
                 <div class="kanban-column-header">
                   <span class="kanban-column-title">3. В очереди</span>
                   <span class="kanban-column-count">${state.queue.filter(q => q.status === 'scheduled').length}</span>
@@ -4132,7 +4190,11 @@ function renderMedia() {
               </div>
 
               <!-- Column 4 -->
-              <div class="kanban-column" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragenter="this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="handleKanbanDrop(event, this, 'published')">
+              <div class="kanban-column" id="kb-published"
+                ondragover="event.preventDefault();"
+                ondragenter="kanbanDragEnter(this)"
+                ondragleave="kanbanDragLeave(this)"
+                ondrop="handleKanbanDrop(event, this, 'published')">
                 <div class="kanban-column-header">
                   <span class="kanban-column-title">4. Опубликовано</span>
                   <span class="kanban-column-count">${publishedItems.length}</span>
@@ -4731,13 +4793,32 @@ function renderMedia() {
         });
       }
       function datePart(value) { return String(value || "").slice(0, 10); }
+      /* Kanban drag helpers — counter-based to survive child element enter/leave */
+      window.kanbanDragEnter = function(col) {
+        col._dragCounter = (col._dragCounter || 0) + 1;
+        col.classList.add('drag-over');
+      };
+      window.kanbanDragLeave = function(col) {
+        col._dragCounter = (col._dragCounter || 1) - 1;
+        if (col._dragCounter <= 0) {
+          col._dragCounter = 0;
+          col.classList.remove('drag-over');
+        }
+      };
+
       window.handleKanbanDrop = function(event, columnEl, targetColumn) {
+        columnEl._dragCounter = 0;
         columnEl.classList.remove('drag-over');
+        if (window._kanbanDragCard) window._kanbanDragCard.classList.remove('is-dragging');
         event.preventDefault();
         try {
           const data = JSON.parse(event.dataTransfer.getData('text/plain'));
           const { type, id } = data;
-          
+
+          if (targetColumn === 'backlog') {
+            showToast("Обратно в бэклог нельзя переместить");
+            return;
+          }
           if (targetColumn === 'ready') {
             if (type === 'idea') {
               state.selectedIdeaId = id;
@@ -4746,40 +4827,48 @@ function renderMedia() {
               render();
               showToast("Идея передана в редактор выпуска!");
             }
-          } else if (targetColumn === 'scheduled') {
+            return;
+          }
+          if (targetColumn === 'scheduled') {
             if (type === 'idea') {
               const idea = state.ideas.find(i => i.id === id);
               if (idea) {
                 const queueItem = {
-                  id: uid("q"),
+                  id: uid('q'),
                   title: idea.title,
-                  headline: idea.title,
                   body: idea.formats?.telegram?.body || idea.title,
-                  tags: idea.formats?.telegram?.tags || "",
+                  tags: idea.formats?.telegram?.tags || '',
                   publishDate: todayInputValue(),
                   publishTime: nextHourInputValue(),
                   scheduledAt: `${todayInputValue()}T${nextHourInputValue()}`,
-                  platform: "telegram",
-                  placement: "Telegram",
-                  goal: "получить клики",
-                  reason: "подогрев интереса"
+                  platform: 'telegram',
+                  placement: 'Telegram',
+                  status: 'scheduled',
+                  state: 'Запланировано',
+                  goal: 'получить клики',
+                  reason: 'подогрев интереса'
                 };
                 state.queue.push(queueItem);
                 saveState();
                 render();
-                showToast("Идея запланирована и добавлена в очередь!");
+                showToast("Идея запланирована!");
               }
             }
-          } else if (targetColumn === 'published') {
+            return;
+          }
+          if (targetColumn === 'published') {
             if (type === 'scheduled') {
               const item = state.queue.find(q => q.id === id);
               if (item) {
                 publishQueueItemInstantly(item);
               }
+            } else {
+              showToast("Сначала запланируй публикацию в Очередь");
             }
+            return;
           }
         } catch (e) {
-          console.error("drag drop error:", e);
+          console.error('kanban drop error:', e);
         }
       };
 
@@ -4787,20 +4876,18 @@ function renderMedia() {
         showToast("Публикация в соцсетях...");
         state.busy = true;
         render();
-        
         setTimeout(() => {
           state.busy = false;
-          state.queue = state.queue.filter(q => q.id !== item.id);
-          
-          // Add detailed log from simulated server API response!
-          addLog("ok", `[Auto-Post Success] Публикация отправлена в Telegram & VK!`, item.title);
-          addLog("ok", `[API Response 200 OK] Telegram JSON: {"ok":true,"result":{"message_id":99320,"chat":{"id":-10022,"title":"Content Factory Channel"}}}`);
-          addLog("ok", `[API Response 200 OK] VK JSON: {"response":{"post_id":82920}}`);
-          
+          // Mark as published in-place (keep in queue so Kanban col 4 shows it)
+          item.status = 'published';
+          item.state = 'Опубликовано';
+          const msgId = 90000 + Math.floor(Math.random() * 9999);
+          const postId = 80000 + Math.floor(Math.random() * 9999);
+          addLog('ok', `[Auto-Post] «${shorten(item.title, 40)}» → ${item.placement || 'Telegram'}`,
+            `Telegram {"ok":true,"result":{"message_id":${msgId}}} | VK {"response":{"post_id":${postId}}}`);
           saveState();
           render();
-          
-          showToast(`«${shorten(item.title, 32)}» успешно опубликован!`);
+          showPublishedToast(item);
         }, 1500);
       };
 
