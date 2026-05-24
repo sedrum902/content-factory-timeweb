@@ -684,6 +684,7 @@
     .list { display: grid; gap: 12px; min-width: 0; }
     .item-row, .media-card, .queue-card, .project-card { padding: 18px; display: flex; gap: 16px; align-items: flex-start; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(135deg, rgba(255,255,255,0.052) 0%, rgba(255,255,255,0.018) 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.035); transition: all var(--fast); min-width: 0; }
     .media-card:hover, .queue-card:hover, .project-card:hover { border-color: rgba(255,255,255,0.16); background: linear-gradient(135deg, rgba(255,255,255,0.075) 0%, rgba(255,255,255,0.025) 100%); }
+    .project-card.active { border-color: rgba(69,211,255,.42) !important; background: rgba(69,211,255,.09) !important; color: #fff !important; }
     .item-body { min-width: 0; flex: 1; }
     .item-title { font-size: 15px; line-height: 1.35; font-weight: 950; color: #fff; }
     .item-sub { margin-top: 6px; color: var(--soft); font-size: 12px; line-height: 1.55; font-weight: 700; }
@@ -1287,6 +1288,11 @@
     .idea-title { color: inherit !important; }
     .idea.active .item-sub, .idea.active .idea-title { color: rgba(255,255,255,.76) !important; }
     .idea.active .pill, .idea.active .chip { background: rgba(255,255,255,.13) !important; color: #fff !important; border-color: rgba(255,255,255,.16) !important; }
+    .idea.active .chip.info { background: rgba(255,255,255,.18) !important; color: #fff !important; border-color: rgba(255,255,255,.24) !important; }
+    .idea.active .chip.ok { background: rgba(74,191,122,.28) !important; color: #fff !important; border-color: rgba(74,191,122,.40) !important; }
+    .idea.active .chip.warn { background: rgba(239,182,71,.28) !important; color: #fff !important; border-color: rgba(239,182,71,.40) !important; }
+    .idea.active .chip.bad { background: rgba(239,91,80,.28) !important; color: #fff !important; border-color: rgba(239,91,80,.40) !important; }
+
 
     .platform {
       color: #171717 !important;
@@ -1319,6 +1325,12 @@
     .media-card:hover, .queue-card:hover, .project-card:hover {
       background: #fff !important;
       border-color: rgba(23,23,23,.22) !important;
+    }
+
+    .project-card.active {
+      background: rgba(94, 140, 255, 0.16) !important;
+      border-color: rgba(94, 140, 255, 0.42) !important;
+      color: #171717 !important;
     }
 
     .metric-value {
@@ -1451,7 +1463,7 @@
       .topbar-inner { grid-template-columns: minmax(0, 1fr) minmax(160px, 270px) !important; }
       .nav { grid-column: 1 / -1; order: 3; justify-content: flex-start; }
       .workbench { grid-template-columns: 1fr !important; }
-      .brief-panel { position: static; }
+      .brief-panel, .sticky { position: static !important; }
     }
 
     @media (max-width: 900px) {
@@ -2441,14 +2453,45 @@
       .account-pill {
         width: 100% !important;
         min-width: 0 !important;
+        max-width: 154px !important;
         flex-basis: auto !important;
         grid-column: 2;
         grid-row: 1;
+        justify-content: space-between !important;
+        padding: 6px 8px !important;
+      }
+      .account-pill span {
+        max-width: 80px !important;
+      }
+      .account-pill .chip {
+        font-size: 0 !important;
+        padding: 0 !important;
+        width: 8px !important;
+        height: 8px !important;
+        min-width: 8px !important;
+        border-radius: 50% !important;
+        margin-left: auto;
+        position: relative;
+        flex: 0 0 auto !important;
+      }
+      .account-pill .chip.ok {
+        background: #4abf7a !important;
+        box-shadow: 0 0 0 4px rgba(74,191,122,.28) !important;
+        border: none !important;
+      }
+      .account-pill .chip.warn {
+        background: #efb647 !important;
+        box-shadow: 0 0 0 4px rgba(239,182,71,.28) !important;
+        border: none !important;
+      }
+      .account-pill .chip:not(.ok):not(.warn) {
+        display: none !important;
       }
       .nav {
         grid-column: 1 / -1;
         width: 100% !important;
         border-radius: 16px !important;
+        justify-content: flex-start !important;
       }
       .nav-btn {
         min-width: 48px !important;
@@ -3673,12 +3716,13 @@ function renderMedia() {
       }
 
       function renderProjectCard(project) {
+        const isActive = project.id === state.activeProjectId;
         return `
-          <button class="project-card ${project.id === state.activeProjectId ? "" : ""}" data-action="select-project" data-id="${escapeHtml(project.id)}" style="width:100%; color:#fff; text-align:left; ${project.id === state.activeProjectId ? "border-color:rgba(69,211,255,.42); background:rgba(69,211,255,.09);" : ""}">
+          <button class="project-card ${isActive ? "active" : ""}" data-action="select-project" data-id="${escapeHtml(project.id)}" style="width:100%; text-align:left;">
             <div class="icon-box">${icons.projects}</div>
             <div class="item-body">
               <div class="item-title">${escapeHtml(project.name)}</div>
-              <div class="item-sub">${escapeHtml(project.niche)} · ${escapeHtml(project.offer)}</div>
+              <div class="item-sub">${escapeHtml(project.niche || "Ниша не заполнена")} · ${escapeHtml(project.offer || "Предложение")}</div>
             </div>
           </button>
         `;
