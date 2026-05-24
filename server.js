@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import multer from "multer";
 import crypto from "crypto";
 import fs from "fs";
@@ -105,13 +107,23 @@ const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || "").replace(/\/+$/, "");
 const MAX_UPLOAD_MB = Number(process.env.MAX_UPLOAD_MB || 200);
 const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 300000);
 const AI_MAX_TOKENS = Number(process.env.AI_MAX_TOKENS || 8000);
-const ENABLE_DEMO_LOGIN = process.env.ENABLE_DEMO_LOGIN !== "false";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const ENABLE_DEMO_LOGIN = IS_PRODUCTION
+  ? process.env.ENABLE_DEMO_LOGIN === "true"
+  : process.env.ENABLE_DEMO_LOGIN !== "false";
 const DEMO_EMAIL = process.env.DEMO_EMAIL || "kubik";
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "kubik";
 const CLIENT_DEMO_EMAIL = process.env.CLIENT_DEMO_EMAIL || "client";
 const CLIENT_DEMO_PASSWORD = process.env.CLIENT_DEMO_PASSWORD || "client123";
 const CLIENT_SHARED_WORKSPACE = process.env.CLIENT_SHARED_WORKSPACE !== "false";
 const CLIENT_DAILY_GENERATION_LIMIT = Number(process.env.CLIENT_DAILY_GENERATION_LIMIT || 5);
+const DEBUG_HEALTH = process.env.DEBUG_HEALTH === "true";
+const AUTH_RATE_LIMIT_WINDOW_MS = Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
+const AUTH_RATE_LIMIT_MAX = Number(process.env.AUTH_RATE_LIMIT_MAX || 20);
+const AI_RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000);
+const AI_RATE_LIMIT_MAX = Number(process.env.AI_RATE_LIMIT_MAX || 60);
+const PUBLISH_RATE_LIMIT_WINDOW_MS = Number(process.env.PUBLISH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
+const PUBLISH_RATE_LIMIT_MAX = Number(process.env.PUBLISH_RATE_LIMIT_MAX || 60);
 
 // YouTube OAuth2 config (Google Cloud Console)
 const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID || "";
@@ -174,6 +186,11 @@ const corsOrigin = process.env.CORS_ORIGIN
   : process.env.NODE_ENV === "production" ? false : true;
 
 app.use(cors({ origin: corsOrigin, credentials: true }));
+app.set("trust proxy", 1);
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -183,6 +200,30 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(uploadsDir));
+
+const authLimiter = rateLimit({
+  windowMs: AUTH_RATE_LIMIT_WINDOW_MS,
+  limit: AUTH_RATE_LIMIT_MAX,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Слишком много попыток входа. Подожди немного и попробуй снова." }
+});
+
+const aiLimiter = rateLimit({
+  windowMs: AI_RATE_LIMIT_WINDOW_MS,
+  limit: AI_RATE_LIMIT_MAX,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Слишком много запросов к ИИ. Подожди немного и попробуй снова." }
+});
+
+const publishLimiter = rateLimit({
+  windowMs: PUBLISH_RATE_LIMIT_WINDOW_MS,
+  limit: PUBLISH_RATE_LIMIT_MAX,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Слишком много запросов на публикацию или загрузку. Подожди немного и попробуй снова." }
+});
 
 for (const iconFile of [
   "favicon.ico",
@@ -239,6 +280,15 @@ function loadStore() {
     return { users: Array.isArray(data.users) ? data.users : [] };
   } catch (error) {
     console.error("Ошибка чтения users.json:", error);
+    try {
+      if (fs.existsSync(usersFile)) {
+        const brokenFile = `${usersFile}.broken-${Date.now()}`;
+        fs.copyFileSync(usersFile, brokenFile);
+        console.error("Поврежденный users.json сохранен как:", brokenFile);
+      }
+    } catch (backupError) {
+      console.error("Не удалось сохранить копию поврежденного users.json:", backupError.message);
+    }
     return { users: [] };
   }
 }
@@ -255,6 +305,73 @@ function normalizeEmail(email) {
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function cleanText(value, maxLength = 2000) {
+  return String(value ?? "").replace(/\0/g, "").trim().slice(0, maxLength);
+}
+
+function cleanOptionalText(value, maxLength = 2000) {
+  if (value === undefined || value === null) return undefined;
+  return cleanText(value, maxLength);
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function validateAuthBody(body = {}, mode = "login") {
+  const email = normalizeEmail(body.email);
+  const password = String(body.password || "");
+
+  if (!isValidEmail(email)) {
+    return { error: "Укажи нормальный email." };
+  }
+
+  if (mode === "register" && password.length < 6) {
+    return { error: "Пароль должен быть минимум 6 символов." };
+  }
+
+  if (mode === "login" && !password) {
+    return { error: "Укажи пароль." };
+  }
+
+  return { email, password };
+}
+
+function validateConfigBody(body = {}) {
+  const allowed = {
+    telegramBotToken: 120,
+    telegramChatId: 160,
+    instagramAccessToken: 600,
+    instagramUserId: 160
+  };
+  const output = {};
+
+  for (const [key, maxLength] of Object.entries(allowed)) {
+    const value = cleanOptionalText(body[key], maxLength);
+    if (value !== undefined) output[key] = value;
+  }
+
+  return output;
+}
+
+function uploadPathFromUrl(fileUrl) {
+  const raw = String(fileUrl || "");
+  if (!raw) return "";
+
+  let filename = "";
+  try {
+    const parsed = new URL(raw, PUBLIC_BASE_URL || "http://localhost");
+    filename = decodeURIComponent(path.basename(parsed.pathname));
+  } catch {
+    filename = decodeURIComponent(path.basename(raw.split("?")[0]));
+  }
+
+  if (!filename || filename.includes("/") || filename.includes("\\")) return "";
+  const localPath = path.resolve(uploadsDir, filename);
+  const root = path.resolve(uploadsDir) + path.sep;
+  return localPath.startsWith(root) ? localPath : "";
 }
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
@@ -956,41 +1073,40 @@ app.get("/api/health", (req, res) => {
   const store = loadStore();
   const hasTimeweb = Boolean(TIMEWEB_API_KEY && TIMEWEB_AGENT_ID);
 
-  res.json({
+  const payload = {
     ok: true,
     service: "content-factory-backend",
     appBuild: APP_BUILD,
     mode: hasTimeweb ? "private-timeweb-agent" : "timeweb-agent-not-configured",
-    users: store.users.length,
     maxUploadMb: MAX_UPLOAD_MB,
     aiTimeoutMs: AI_TIMEOUT_MS,
     provider: "Timeweb Cloud AI Agent",
     timeweb: hasTimeweb,
-    agent: hasTimeweb ? TIMEWEB_AGENT_ID : "",
-    env: {
+    demoLoginEnabled: ENABLE_DEMO_LOGIN
+  };
+
+  if (DEBUG_HEALTH) {
+    payload.users = store.users.length;
+    payload.agent = hasTimeweb ? TIMEWEB_AGENT_ID : "";
+    payload.env = {
       keyFound: Boolean(TIMEWEB_API_KEY),
       keySource: TIMEWEB_ENV.apiKeySource || "",
       agentFound: Boolean(TIMEWEB_AGENT_ID),
       agentSource: TIMEWEB_ENV.agentIdSource || "",
       hasLogi: Boolean(process.env.logi || process.env.LOGI),
       hasTimewebApiKey: Boolean(process.env.TIMEWEB_API_KEY)
-    },
-    node: process.version,
-    port: PORT
-  });
+    };
+    payload.node = process.version;
+    payload.port = PORT;
+  }
+
+  res.json(payload);
 });
 
-app.post("/api/auth/register", (req, res) => {
-  const email = normalizeEmail(req.body?.email);
-  const password = String(req.body?.password || "");
-
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ error: "Укажи нормальный email." });
-  }
-
-  if (password.length < 6) {
-    return res.status(400).json({ error: "Пароль должен быть минимум 6 символов." });
-  }
+app.post("/api/auth/register", authLimiter, (req, res) => {
+  const auth = validateAuthBody(req.body, "register");
+  if (auth.error) return res.status(400).json({ error: auth.error });
+  const { email, password } = auth;
 
   const store = loadStore();
   if (store.users.some((user) => user.email === email)) {
@@ -1015,9 +1131,10 @@ app.post("/api/auth/register", (req, res) => {
   });
 });
 
-app.post("/api/auth/login", (req, res) => {
-  const email = normalizeEmail(req.body?.email);
-  const password = String(req.body?.password || "");
+app.post("/api/auth/login", authLimiter, (req, res) => {
+  const auth = validateAuthBody(req.body, "login");
+  if (auth.error) return res.status(400).json({ error: auth.error });
+  const { email, password } = auth;
   const store = loadStore();
 
   if (ENABLE_DEMO_LOGIN) {
@@ -1108,6 +1225,10 @@ app.put("/api/workspace", requireAuth, (req, res) => {
     const user = req.store.users.find((item) => item.id === req.workspaceUser.id);
     if (!user) return res.status(401).json({ error: "Аккаунт не найден. Войди заново." });
 
+    if (!isPlainObject(req.body?.workspace)) {
+      return res.status(400).json({ error: "Не передано рабочее пространство." });
+    }
+
     const workspace = sanitizeWorkspace(req.body?.workspace || {});
     user.workspace = workspace;
     user.queue = workspace.queue;
@@ -1153,7 +1274,7 @@ app.post("/api/queue", requireAuth, (req, res) => {
 });
 
 app.post("/api/config", requireAuth, (req, res) => {
-  const { telegramBotToken, telegramChatId, instagramAccessToken, instagramUserId } = req.body || {};
+  const { telegramBotToken, telegramChatId, instagramAccessToken, instagramUserId } = validateConfigBody(req.body || {});
 
   try {
     const user = req.store.users.find((item) => item.id === req.workspaceUser.id);
@@ -1205,7 +1326,7 @@ app.post("/api/config", requireAuth, (req, res) => {
   }
 });
 
-app.post("/api/ai/test", requireAuth, async (req, res) => {
+app.post("/api/ai/test", requireAuth, aiLimiter, async (req, res) => {
   try {
     if (!TIMEWEB_API_KEY || !TIMEWEB_AGENT_ID) {
       return res.status(400).json({ error: "Timeweb-агент не настроен на сервере." });
@@ -1243,7 +1364,7 @@ app.post("/api/ai/test", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) => {
+app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async (req, res) => {
   try {
     const timewebApiKey = TIMEWEB_API_KEY;
     const timewebAgentId = TIMEWEB_AGENT_ID;
@@ -1255,13 +1376,29 @@ app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) 
     }
 
     const { project, settings, platform, planner } = req.body || {};
-    if (!project) {
+    if (!isPlainObject(project)) {
       return res.status(400).json({
         error: "Не передан project"
       });
     }
 
     const ideaCount = Math.max(1, Math.min(Number(settings?.ideaCount || 10), 20));
+    const safeProject = {
+      name: cleanText(project.name, 180),
+      briefText: cleanText(project.briefText, 12000)
+    };
+    const safeSettings = {
+      objective: cleanText(settings?.objective || "заявка", 240),
+      style: cleanText(settings?.style || "коротко, по делу", 240)
+    };
+    const safePlanner = {
+      placement: cleanText(planner?.placement || "", 120),
+      publishDate: cleanText(planner?.publishDate || "", 40),
+      publishTime: cleanText(planner?.publishTime || "", 40),
+      goal: cleanText(planner?.goal || "", 240),
+      reason: cleanText(planner?.reason || "", 1000),
+      formatNote: cleanText(planner?.formatNote || "", 1000)
+    };
 
     const platformLabel = {
       telegram: "Telegram-канал",
@@ -1301,20 +1438,20 @@ app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) 
     const userPrompt = [
       `Сгенерируй ровно ${ideaCount} идею/идеи для контента в формате JSON.`,
       "",
-      `Проект: ${project.name || ""}`,
+      `Проект: ${safeProject.name || ""}`,
       `Вводные данные (Бриф):`,
-      project.briefText ? project.briefText : "Нет подробного брифа.",
-      `Цель: ${settings?.objective || "заявка"}`,
-      `Тон: ${settings?.style || "коротко, по делу"}`,
+      safeProject.briefText ? safeProject.briefText : "Нет подробного брифа.",
+      `Цель: ${safeSettings.objective}`,
+      `Тон: ${safeSettings.style}`,
       "",
       "План публикации:",
       `Основная площадка сейчас: ${platformLabel}`,
-      `Куда публикуем: ${planner?.placement || platformLabel}`,
-      `Дата: ${planner?.publishDate || ""}`,
-      `Время: ${planner?.publishTime || ""}`,
-      `Зачем публикуем: ${planner?.goal || settings?.objective || ""}`,
-      `Почему это должно сработать: ${planner?.reason || ""}`,
-      `Особые требования: ${planner?.formatNote || ""}`,
+      `Куда публикуем: ${safePlanner.placement || platformLabel}`,
+      `Дата: ${safePlanner.publishDate}`,
+      `Время: ${safePlanner.publishTime}`,
+      `Зачем публикуем: ${safePlanner.goal || safeSettings.objective}`,
+      `Почему это должно сработать: ${safePlanner.reason}`,
+      `Особые требования: ${safePlanner.formatNote}`,
       "",
       "Требования:",
       "- title: до 90 символов, сильный хук.",
@@ -1351,12 +1488,12 @@ app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) 
       ideas = normalizeIdeas(data);
     } catch (jsonError) {
       warning = "AI ответил не чистым JSON. Сервер собрал идеи из текстового ответа модели.";
-      ideas = fallbackIdeasFromText(text, ideaCount, project);
+      ideas = fallbackIdeasFromText(text, ideaCount, safeProject);
       console.warn("generate json fallback:", jsonError.message, String(text || "").slice(0, 800));
     }
 
     if (!ideas.length) {
-      ideas = fallbackIdeasFromText(text || "", ideaCount, project);
+      ideas = fallbackIdeasFromText(text || "", ideaCount, safeProject);
     }
 
     if (!ideas.length) {
@@ -1394,7 +1531,7 @@ app.post("/api/generate", requireAuth, enforceGenerationLimit, async (req, res) 
   }
 });
 
-app.post("/api/upload", requireAuth, (req, res, next) => {
+app.post("/api/upload", requireAuth, publishLimiter, (req, res, next) => {
   upload.single("file")(req, res, (err) => {
     if (err) {
       if (err.code === "LIMIT_FILE_SIZE") {
@@ -1496,9 +1633,9 @@ async function callImageGenerator(prompt) {
   return Buffer.from(arrayBuffer);
 }
 
-app.post("/api/generate-image", requireAuth, enforceGenerationLimit, async (req, res) => {
+app.post("/api/generate-image", requireAuth, aiLimiter, enforceGenerationLimit, async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const prompt = cleanText(req.body?.prompt, 2000);
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return res.status(400).json({ error: "Не передан текст промпта" });
     }
@@ -1588,7 +1725,7 @@ async function telegramCall(method, payload, botToken) {
   return data;
 }
 
-app.post("/api/publish/telegram", requireAuth, async (req, res) => {
+app.post("/api/publish/telegram", requireAuth, publishLimiter, async (req, res) => {
   try {
     const userSettings = getUserSettingsForServer(req.workspaceUser);
     const botToken = userSettings.telegramBotToken;
@@ -1615,8 +1752,7 @@ app.post("/api/publish/telegram", requireAuth, async (req, res) => {
     let result;
 
     if (media?.url) {
-      const filename = media.url.split("/").pop();
-      const localPath = path.join(uploadsDir, decodeURIComponent(filename));
+      const localPath = uploadPathFromUrl(media.url);
       const method = media.type?.startsWith("image/") ? "sendPhoto" : "sendVideo";
 
       if (fs.existsSync(localPath)) {
@@ -1695,7 +1831,7 @@ async function instagramPublishReel(accessToken, userId, videoUrl, caption) {
   return publishData;
 }
 
-app.post("/api/publish/instagram", requireAuth, async (req, res) => {
+app.post("/api/publish/instagram", requireAuth, publishLimiter, async (req, res) => {
   try {
     const userSettings = getUserSettingsForServer(req.workspaceUser);
     const { instagramAccessToken, instagramUserId } = userSettings;
@@ -1734,7 +1870,7 @@ function makeYouTubeOAuth(redirectUri) {
   return new google.auth.OAuth2(YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, redirectUri);
 }
 
-app.get("/api/auth/youtube", requireAuth, (req, res) => {
+app.get("/api/auth/youtube", requireAuth, publishLimiter, (req, res) => {
   if (!YOUTUBE_CLIENT_ID || !YOUTUBE_CLIENT_SECRET) {
     return res.status(400).json({
       error: "YouTube OAuth не настроен. Добавь YOUTUBE_CLIENT_ID и YOUTUBE_CLIENT_SECRET в .env."
@@ -1811,7 +1947,7 @@ app.get("/api/auth/youtube/callback", async (req, res) => {
   }
 });
 
-app.post("/api/auth/youtube/disconnect", requireAuth, (req, res) => {
+app.post("/api/auth/youtube/disconnect", requireAuth, publishLimiter, (req, res) => {
   try {
     const store = loadStore();
     const user = store.users.find((u) => u.id === req.workspaceUser.id);
@@ -1829,7 +1965,7 @@ app.post("/api/auth/youtube/disconnect", requireAuth, (req, res) => {
   }
 });
 
-app.post("/api/publish/youtube", requireAuth, async (req, res) => {
+app.post("/api/publish/youtube", requireAuth, publishLimiter, async (req, res) => {
   try {
     const userSettings = getUserSettingsForServer(req.workspaceUser);
     const { youtubeRefreshToken } = userSettings;
@@ -1860,8 +1996,7 @@ app.post("/api/publish/youtube", requireAuth, async (req, res) => {
     const yt = google.youtube({ version: "v3", auth: oauth2Client });
 
     // Get video file from local uploads
-    const filename = decodeURIComponent(media.url.split("/").pop());
-    const localPath = path.join(uploadsDir, filename);
+    const localPath = uploadPathFromUrl(media.url);
 
     if (!fs.existsSync(localPath)) {
       return res.status(400).json({ error: "Файл не найден на сервере. Загрузи видео через Медиа." });
@@ -1914,7 +2049,15 @@ app.post("/api/publish/youtube", requireAuth, async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // Планировщик автопостинга из очереди, каждые 60 секунд
 // ─────────────────────────────────────────────────────────────
+let schedulerRunning = false;
+
 async function runScheduledPublishing() {
+  if (schedulerRunning) {
+    console.warn("[Scheduler] Предыдущий запуск ещё не завершён, пропускаем тик.");
+    return;
+  }
+
+  schedulerRunning = true;
   try {
     const store = loadStore();
     const now = new Date();
@@ -1959,8 +2102,7 @@ async function runScheduledPublishing() {
             oauth2Client.setCredentials({ refresh_token: youtubeRefreshToken });
             const yt = google.youtube({ version: "v3", auth: oauth2Client });
 
-            const filename = decodeURIComponent(post.mediaUrl.split("/").pop());
-            const localPath = path.join(uploadsDir, filename);
+            const localPath = uploadPathFromUrl(post.mediaUrl);
             if (!fs.existsSync(localPath)) { post.status = "error"; post.lastError = "Файл не найден"; changed = true; continue; }
 
             await yt.videos.insert({
@@ -1993,6 +2135,8 @@ async function runScheduledPublishing() {
     saveStore(store);
   } catch (err) {
     console.error("[Scheduler] Ошибка планировщика:", err.message);
+  } finally {
+    schedulerRunning = false;
   }
 }
 
