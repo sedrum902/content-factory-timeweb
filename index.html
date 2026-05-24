@@ -682,6 +682,41 @@
     .platform-sub { display: block; margin-top: 4px; color: rgba(255,255,255,.45); font-size: 11px; font-weight: 800; }
     .platform.active .platform-sub { color: rgba(7,16,26,.58); }
 
+    .ops-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: var(--gap); align-items: start; }
+    .ops-hero { min-height: 360px; display: grid; align-content: center; background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.58)); }
+    .ops-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 10px; margin-top: 24px; }
+    .ops-action { border: 1px solid var(--line); background: rgba(255,255,255,.64); border-radius: 18px; padding: 15px; color: var(--text); text-align: left; display: grid; gap: 7px; transition: .18s ease; min-width: 0; }
+    .ops-action:hover { transform: translateY(-1px); border-color: rgba(94,140,255,.35); background: rgba(94,140,255,.08); }
+    .ops-action b { font-size: 14px; line-height: 1.25; font-weight: 950; }
+    .ops-action span { color: var(--muted); font-size: 12px; line-height: 1.45; font-weight: 750; }
+    .ops-side { display: grid; gap: var(--gap); }
+    .ops-checklist { display: grid; gap: 10px; margin-top: 16px; }
+    .ops-check { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.48); }
+    .ops-check i { width: 28px; height: 28px; border-radius: 10px; display: grid; place-items: center; font-style: normal; font-weight: 950; font-size: 12px; color: #fff; background: #171717; }
+    .ops-check.ok i { background: var(--green); }
+    .ops-check.warn i { background: var(--yellow); color: #171717; }
+    .ops-check.bad i { background: var(--red); }
+    .ops-check b { display: block; font-size: 13px; line-height: 1.25; font-weight: 950; }
+    .ops-check span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.45; font-weight: 700; }
+
+    .template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; min-width: 0; }
+    .template-card { border: 1px solid var(--line); background: rgba(255,255,255,.58); border-radius: 18px; padding: 15px; text-align: left; color: var(--text); min-height: 142px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transition: .18s ease; min-width: 0; }
+    .template-card:hover { transform: translateY(-1px); border-color: rgba(94,140,255,.36); background: rgba(94,140,255,.08); }
+    .template-card.active { border-color: rgba(94,140,255,.60); background: rgba(94,140,255,.13); box-shadow: 0 14px 32px rgba(94,140,255,.10); }
+    .template-card b { display: block; font-size: 14px; line-height: 1.25; font-weight: 950; }
+    .template-card span { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.45; font-weight: 720; }
+    .template-meta { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+    .template-meta .chip { padding: 5px 8px; font-size: 10px; }
+
+    .queue-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 10px; }
+    .queue-filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .queue-status-card { border: 1px solid var(--line); background: rgba(255,255,255,.58); border-radius: 18px; padding: 15px; min-width: 0; }
+    .queue-status-card b { display: block; font-family: var(--font-display); font-size: 28px; letter-spacing: -.04em; line-height: 1; }
+    .queue-status-card span { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.4; font-weight: 800; }
+    .calendar-item.telegram { border-left: 4px solid #24A1DE; }
+    .calendar-item.instagram { border-left: 4px solid #dc2743; }
+    .calendar-item.youtube { border-left: 4px solid #ff0000; }
+
     .output-box { border: 1px solid var(--line); border-radius: 26px; background: rgba(0,0,0,.19); padding: 18px; min-width: 0; }
     .list { display: grid; gap: 12px; min-width: 0; }
     .item-row, .media-card, .queue-card, .project-card { padding: 18px; display: flex; gap: 16px; align-items: flex-start; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(135deg, rgba(255,255,255,0.052) 0%, rgba(255,255,255,0.018) 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.035); transition: all var(--fast); min-width: 0; }
@@ -729,6 +764,7 @@
       .topbar-inner { grid-template-columns: 1fr; align-items: stretch; }
       .account-pill { max-width: 100%; }
       .grid-hero, .layout, .workbench { grid-template-columns: 1fr; }
+      .ops-grid { grid-template-columns: 1fr; }
       .sticky, .brief-panel { position: static; }
       .manual-ai-grid { grid-template-columns: 1fr; }
     }
@@ -3203,6 +3239,7 @@
       };
 
       const tabs = [
+        ["dashboard", "Пульт", icons.logs],
         ["factory", "Завод", icons.factory],
         ["board", "Канбан", icons.board],
         ["media", "Медиа", icons.media],
@@ -3219,9 +3256,73 @@
         youtube: { name: "YouTube", short: "сценарий видео", icon: "YT" }
       };
 
+      const contentTemplates = [
+        {
+          id: "telegram-sales",
+          name: "Продающий Telegram-пост",
+          platform: "telegram",
+          goal: "получить заявку",
+          style: "коротко, конкретно, с болью, доказательством и мягким призывом",
+          formatNote: "Структура: хук, проблема, механизм решения, доказательство, безопасный призыв. Без общих слов.",
+          briefAdd: "Нужен Telegram-пост для заявки. Важно: конкретная боль, факт или доказательство, понятный следующий шаг.",
+          tag: "заявки"
+        },
+        {
+          id: "telegram-warmup",
+          name: "Прогрев перед продажей",
+          platform: "telegram",
+          goal: "снять возражение и подготовить к заявке",
+          style: "человечески, экспертно, без давления",
+          formatNote: "Показать страх клиента, объяснить причину, дать критерии выбора и мягко подвести к расчету.",
+          briefAdd: "Нужен прогревающий пост: закрыть страхи, объяснить выбор и подготовить человека к обращению.",
+          tag: "прогрев"
+        },
+        {
+          id: "reels-script",
+          name: "Reels-сценарий 25 секунд",
+          platform: "instagram",
+          goal: "зацепить холодную аудиторию",
+          style: "динамично, просто, с сильным первым кадром",
+          formatNote: "Дай сценарий по кадрам: 0-3 сек хук, 3-12 сек проблема, 12-20 сек решение, 20-25 сек призыв.",
+          briefAdd: "Нужен сценарий Reels на 20-30 секунд с текстом на экране и голосом.",
+          tag: "видео"
+        },
+        {
+          id: "shorts-script",
+          name: "YouTube Shorts",
+          platform: "youtube",
+          goal: "быстро объяснить пользу и привести к действию",
+          style: "ясно, энергично, без долгого вступления",
+          formatNote: "Сценарий Shorts: хук 0-3 сек, пример, вывод, призыв. Добавь текст на экране.",
+          briefAdd: "Нужен короткий сценарий YouTube Shorts с быстрым объяснением пользы.",
+          tag: "shorts"
+        },
+        {
+          id: "case-post",
+          name: "Кейс / было-стало",
+          platform: "telegram",
+          goal: "доказать результат",
+          style: "по фактам, без самовосхваления",
+          formatNote: "Структура: исходная ситуация, что сделали, результат, что это доказывает, следующий шаг.",
+          briefAdd: "Нужен пост-кейс. Если точных цифр нет, не придумывать, писать аккуратно.",
+          tag: "доверие"
+        },
+        {
+          id: "rsy-banner",
+          name: "Баннер РСЯ",
+          platform: "telegram",
+          goal: "получить клики из рекламы",
+          style: "очень коротко, жестко по боли, без воды",
+          formatNote: "Сгенерируй 10 коротких заголовков до 10-15 слов и 10 вариантов CTA. Боль, конкретика, безопасность.",
+          briefAdd: "Нужны формулировки для баннеров РСЯ: боль, результат, доказательство или безопасность, короткий призыв.",
+          tag: "реклама"
+        }
+      ];
+
       const defaultState = {
-        activeTab: "factory",
+        activeTab: "dashboard",
         calendarView: "strip",
+        activeTemplateId: "telegram-sales",
         activeProjectId: "p_1",
         activePlatform: "telegram",
         selectedIdeaId: "",
@@ -3318,6 +3419,7 @@
           const merged = clone(defaultState);
           merged.settings = { ...clone(defaultState.settings), ...(parsed.settings || {}) };
           merged.planner = { ...clone(defaultState.planner), ...(parsed.planner || {}) };
+          merged.activeTemplateId = parsed.activeTemplateId || defaultState.activeTemplateId;
           if (merged.planner.publishDate === undefined || merged.planner.publishDate === null) merged.planner.publishDate = todayInputValue();
           if (merged.planner.publishTime === undefined || merged.planner.publishTime === null) merged.planner.publishTime = nextHourInputValue();
           // Always clear secret keys from client storage
@@ -3624,6 +3726,7 @@
 
       function renderMain() {
         const views = {
+          dashboard: renderDashboard,
           factory: renderFactory,
           trends: renderTrends,
           clipper: renderClipper,
@@ -3635,6 +3738,162 @@
           logs: renderLogs
         };
         el.main.innerHTML = (views[state.activeTab] || renderFactory)();
+      }
+
+      function queueStats() {
+        const today = todayInputValue();
+        return {
+          total: state.queue.length,
+          today: state.queue.filter((item) => (item.publishDate || datePart(item.scheduledAt)) === today).length,
+          scheduled: state.queue.filter((item) => (item.status || "scheduled") === "scheduled").length,
+          published: state.queue.filter((item) => item.status === "published" || item.state === "Опубликовано").length,
+          errors: state.queue.filter((item) => item.status === "error" || item.state === "Ошибка").length
+        };
+      }
+
+      function activeTemplate() {
+        return contentTemplates.find((item) => item.id === state.activeTemplateId) || contentTemplates[0];
+      }
+
+      function applyTemplateById(id) {
+        const template = contentTemplates.find((item) => item.id === id);
+        if (!template) return;
+
+        const project = activeProject();
+        state.activeTemplateId = template.id;
+        state.activePlatform = template.platform;
+        state.settings.style = template.style;
+        state.settings.objective = template.goal;
+        state.planner = {
+          ...ensurePlanner(),
+          placement: platforms[template.platform]?.name || "Telegram",
+          goal: template.goal,
+          reason: template.tag,
+          formatNote: template.formatNote
+        };
+
+        const currentBrief = String(project.briefText || "").trim();
+        if (template.briefAdd && !currentBrief.includes(template.briefAdd)) {
+          project.briefText = [currentBrief, "", template.briefAdd].filter(Boolean).join("\n");
+        }
+
+        saveState();
+      }
+
+      function renderDashboard() {
+        const project = activeProject();
+        const stats = queueStats();
+        const nextPosts = [...state.queue]
+          .filter((item) => item.status !== "published")
+          .sort((a, b) => String(a.scheduledAt || "").localeCompare(String(b.scheduledAt || "")))
+          .slice(0, 4);
+        const checks = [
+          {
+            cls: project?.briefText ? "ok" : "warn",
+            title: project?.briefText ? "Бриф заполнен" : "Нет брифа",
+            text: project?.briefText ? shorten(project.briefText, 92) : "Начни с коротких вводных по проекту."
+          },
+          {
+            cls: state.settings.openaiApiKey ? "ok" : "bad",
+            title: state.settings.openaiApiKey ? "ИИ подключен" : "ИИ не настроен",
+            text: state.settings.openaiApiKey ? "Можно генерировать материалы." : "Проверь Timeweb-агента в настройках."
+          },
+          {
+            cls: state.settings.telegramBotToken && state.settings.telegramChatId ? "ok" : "warn",
+            title: state.settings.telegramBotToken && state.settings.telegramChatId ? "Telegram готов" : "Telegram не подключен",
+            text: "Для прямой публикации нужен бот и Chat ID."
+          },
+          {
+            cls: stats.errors ? "bad" : "ok",
+            title: stats.errors ? "Есть ошибки публикаций" : "Ошибок нет",
+            text: stats.errors ? `${stats.errors} публикаций требуют внимания.` : "Очередь выглядит спокойно."
+          }
+        ];
+
+        return `
+          <section class="ops-grid">
+            <div class="panel ops-hero">
+              <div class="pad">
+                <div class="kicker">Пульт контента</div>
+                <h1 class="title-xl">Что сегодня делаем с контентом?</h1>
+                <p class="lead">Сначала бриф и шаблон, потом генерация, редактура и очередь. Здесь видно, где затык и какой следующий шаг даст результат.</p>
+                <div class="ops-actions">
+                  <button class="ops-action" data-action="tab" data-tab="factory"><b>Сгенерировать выпуск</b><span>Бриф, шаблон, площадка и варианты текста.</span></button>
+                  <button class="ops-action" data-action="tab" data-tab="queue"><b>Открыть календарь</b><span>${stats.today} сегодня, ${stats.scheduled} запланировано.</span></button>
+                  <button class="ops-action" data-action="tab" data-tab="media"><b>Добавить медиа</b><span>Фото, видео и материалы для публикаций.</span></button>
+                  <button class="ops-action" data-action="tab" data-tab="settings"><b>Проверить подключения</b><span>ИИ, Telegram, Instagram, YouTube.</span></button>
+                </div>
+              </div>
+            </div>
+
+            <aside class="ops-side">
+              <div class="panel">
+                <div class="pad">
+                  <div class="row">
+                    <div>
+                      <div class="kicker">Статус</div>
+                      <h2 class="title">Рабочая смена</h2>
+                    </div>
+                    <span class="chip info">${escapeHtml(project?.name || "Новый проект")}</span>
+                  </div>
+                  <div class="queue-summary" style="margin-top:18px;">
+                    <div class="queue-status-card"><b>${stats.today}</b><span>на сегодня</span></div>
+                    <div class="queue-status-card"><b>${stats.scheduled}</b><span>в очереди</span></div>
+                    <div class="queue-status-card"><b>${stats.published}</b><span>опубликовано</span></div>
+                    <div class="queue-status-card"><b>${stats.errors}</b><span>ошибки</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="pad">
+                  <div class="kicker">Контроль качества</div>
+                  <h2 class="title">Что проверить</h2>
+                  <div class="ops-checklist">
+                    ${checks.map((item) => `
+                      <div class="ops-check ${item.cls}">
+                        <i>${item.cls === "ok" ? "OK" : "!"}</i>
+                        <div><b>${escapeHtml(item.title)}</b><span>${escapeHtml(item.text)}</span></div>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </section>
+
+          <section class="auto" style="margin-top:var(--gap);">
+            <div class="panel">
+              <div class="pad">
+                <div class="row">
+                  <div>
+                    <div class="kicker">Ближайшие публикации</div>
+                    <h2 class="title">Очередь без лишнего шума</h2>
+                  </div>
+                  <button class="btn small" data-action="tab" data-tab="queue">В календарь</button>
+                </div>
+                <div class="list" style="margin-top:18px;">
+                  ${nextPosts.length ? nextPosts.map(renderQueueCard).join("") : renderEmpty("Ближайших публикаций нет. Сгенерируй материал и поставь его в календарь.")}
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="pad">
+                <div class="row">
+                  <div>
+                    <div class="kicker">Шаблоны</div>
+                    <h2 class="title">Быстрый старт</h2>
+                  </div>
+                  <button class="btn small" data-action="tab" data-tab="factory">Открыть завод</button>
+                </div>
+                <div class="template-grid" style="margin-top:18px;">
+                  ${contentTemplates.slice(0, 4).map(renderTemplateCard).join("")}
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
       }
 
       function renderFactory() {
@@ -3713,6 +3972,22 @@
           <section class="stack" style="margin-top: var(--gap);">
             ${!state.settings.openaiApiKey ? renderNotice("ИИ не настроен", "Серверная конфигурация ИИ пуста. Обратись к администратору сайта.", `<button class="btn primary small" data-action="tab" data-tab="settings">Проверить</button>`) : ""}
             ${shouldShowRegionNotice ? renderNotice("ИИ-подключение недоступно", "Запрос к ИИ был отклонен. Проверь конфигурацию или обратись к администратору.", `<button class="btn primary small" data-action="tab" data-tab="settings">Проверить</button>`) : ""}
+          </section>
+
+          <section class="panel" style="margin-top: var(--gap);">
+            <div class="pad">
+              <div class="section-head">
+                <div>
+                  <div class="kicker">Шаблон генерации</div>
+                  <h2 class="title">Выбери сценарий перед запуском</h2>
+                  <p class="text">Шаблон меняет площадку, цель, тон и требования к результату. Это убирает случайную генерацию и держит материалы ближе к задаче.</p>
+                </div>
+                <span class="chip info">${escapeHtml(activeTemplate().name)}</span>
+              </div>
+              <div class="template-grid">
+                ${contentTemplates.map(renderTemplateCard).join("")}
+              </div>
+            </div>
           </section>
 
           <section class="workbench">
@@ -3868,6 +4143,7 @@ function renderMedia() {
       }
 
       function renderQueue() {
+        const stats = queueStats();
         return `
           <section class="stack">
             <div class="panel">
@@ -3886,6 +4162,12 @@ function renderMedia() {
                   </div>
                 </div>
               </div>
+            </div>
+            <div class="queue-summary">
+              <div class="queue-status-card"><b>${stats.today}</b><span>выходит сегодня</span></div>
+              <div class="queue-status-card"><b>${stats.scheduled}</b><span>ждет публикации</span></div>
+              <div class="queue-status-card"><b>${stats.published}</b><span>уже опубликовано</span></div>
+              <div class="queue-status-card"><b>${stats.errors}</b><span>нужно проверить</span></div>
             </div>
             ${renderCalendar()}
             <div class="auto mobile-scroll">
@@ -4588,7 +4870,7 @@ function renderMedia() {
 
       function renderCalendarItem(item) {
         return `
-          <button class="calendar-item" data-action="open-queue" data-id="${escapeHtml(item.id)}" style="color:#fff; text-align:left;">
+          <button class="calendar-item ${escapeHtml(item.platform || "telegram")}" data-action="open-queue" data-id="${escapeHtml(item.id)}" style="color:#fff; text-align:left;">
             <div class="calendar-time">${escapeHtml(item.publishTime || "без времени")} · ${escapeHtml(platforms[item.platform]?.name || item.platform)}</div>
             <div class="calendar-copy">${escapeHtml(shorten(item.title, 72))}</div>
             <div class="calendar-meta">${escapeHtml(item.goal || "цель не указана")}${item.reason ? " · " + escapeHtml(shorten(item.reason, 70)) : ""}</div>
@@ -4598,6 +4880,23 @@ function renderMedia() {
 
       function renderMetric(value, label, hint) {
         return `<div class="metric"><div class="metric-value">${escapeHtml(value)}</div><div class="metric-label">${escapeHtml(label)}</div><div class="metric-hint">${escapeHtml(hint)}</div></div>`;
+      }
+
+      function renderTemplateCard(item) {
+        const active = item.id === state.activeTemplateId;
+        return `
+          <button class="template-card ${active ? "active" : ""}" data-action="apply-template" data-template="${escapeHtml(item.id)}">
+            <div>
+              <div class="template-meta">
+                <span class="chip info">${escapeHtml(platforms[item.platform]?.name || item.platform)}</span>
+                <span class="chip">${escapeHtml(item.tag)}</span>
+              </div>
+              <b>${escapeHtml(item.name)}</b>
+              <span>${escapeHtml(item.formatNote)}</span>
+            </div>
+            <span class="item-sub">${active ? "Выбран" : "Выбрать шаблон"}</span>
+          </button>
+        `;
       }
 
       function renderNotice(title, text, actionHtml = "") {
@@ -4966,6 +5265,7 @@ function renderMedia() {
         return {
           activeProjectId: state.activeProjectId,
           activePlatform: state.activePlatform,
+          activeTemplateId: state.activeTemplateId,
           selectedIdeaId: state.selectedIdeaId,
           selectedMediaId: state.selectedMediaId,
           planner: state.planner,
@@ -4990,6 +5290,7 @@ function renderMedia() {
         if (!workspace || typeof workspace !== "object") return;
         state.activeProjectId = workspace.activeProjectId || state.activeProjectId;
         state.activePlatform = workspace.activePlatform || state.activePlatform;
+        state.activeTemplateId = workspace.activeTemplateId || state.activeTemplateId || defaultState.activeTemplateId;
         state.selectedIdeaId = workspace.selectedIdeaId || state.selectedIdeaId;
         state.selectedMediaId = workspace.selectedMediaId || state.selectedMediaId;
         state.planner = { ...state.planner, ...(workspace.planner || {}) };
@@ -5685,6 +5986,14 @@ function renderMedia() {
           render();
           scrollToTop();
           if (state.activeTab === "settings") fetchConfig();
+          return;
+        }
+        if (action === "apply-template") {
+          applyTemplateById(target.dataset.template);
+          state.activeTab = "factory";
+          showToast("Шаблон применен");
+          render();
+          scrollToTop();
           return;
         }
         
