@@ -3276,15 +3276,25 @@
           const raw = localStorage.getItem(storageKey());
           if (!raw) return clone(defaultState);
           const parsed = JSON.parse(raw);
-          const merged = { ...clone(defaultState), ...parsed };
+          // Merge settings and planner from saved data
+          const merged = clone(defaultState);
           merged.settings = { ...clone(defaultState.settings), ...(parsed.settings || {}) };
           merged.planner = { ...clone(defaultState.planner), ...(parsed.planner || {}) };
           if (merged.planner.publishDate === undefined || merged.planner.publishDate === null) merged.planner.publishDate = todayInputValue();
           if (merged.planner.publishTime === undefined || merged.planner.publishTime === null) merged.planner.publishTime = nextHourInputValue();
-          
+          // Always clear secret keys from client storage
           merged.settings.openaiApiKey = "";
           merged.settings.telegramBotToken = "";
-          merged.secretVisible = parsed.secretVisible || {};
+          // Content always starts fresh — ideas, queue, media, projects reset
+          merged.ideas = [];
+          merged.queue = [];
+          merged.media = [];
+          merged.logs = [];
+          merged.selectedIdeaId = "";
+          merged.selectedMediaId = "";
+          merged.projects = clone(defaultState.projects);
+          merged.activeProjectId = "p_1";
+          merged.secretVisible = {};
           return merged;
         } catch {
           return clone(defaultState);
@@ -4052,17 +4062,7 @@ function renderMedia() {
 
       function renderBoard() {
         const project = activeProject();
-        
-        // Kanban Columns mapping
-        // Column 1: Идеи (state.ideas)
-        // Column 2: Сценарии (ideas that are clicked / active)
-        // Column 3: Запланировано (state.queue)
-        // Column 4: Опубликовано (simulated logs/history)
-        
-        const publishedMock = [
-          { id: "pub_1", title: "Как AI сокращает расходы на SMM на 70%", platform: "telegram", date: "Вчера" },
-          { id: "pub_2", title: "Главная ошибка при запуске кофейни", platform: "instagram", date: "2 дня назад" }
-        ];
+        const publishedItems = state.queue.filter(q => q.status === "published");
 
         return `
           <section class="stack">
@@ -4074,7 +4074,7 @@ function renderMedia() {
                     <h1 class="title">Канбан-доска публикаций</h1>
                     <p class="text">Визуальное управление процессом создания контента для проекта <strong>${escapeHtml(project.name)}</strong>. Контролируй все стадии производства в одном окне.</p>
                   </div>
-                  <button class="btn small" onclick="showToast('Сетка обновлена')">Обновить</button>
+                  <button class="btn small" onclick="render(); showToast('Сетка обновлена')">Обновить</button>
                 </div>
               </div>
             </div>
@@ -4094,7 +4094,7 @@ function renderMedia() {
                       <span>${idea.score}%</span>
                     </div>
                   </div>
-                `).join("") : renderEmpty("Нет идей")}
+                `).join("") : renderEmpty("Нет идей — нажми «Генерация» в Фабрике")}
               </div>
 
               <!-- Column 2 -->
@@ -4111,21 +4111,21 @@ function renderMedia() {
                       <span>Редактируется</span>
                     </div>
                   </div>
-                ` : renderEmpty("Пусто")}
+                ` : renderEmpty("Пусто — сгенерируй идеи")}
               </div>
 
               <!-- Column 3 -->
               <div class="kanban-column" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragenter="this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="handleKanbanDrop(event, this, 'scheduled')">
                 <div class="kanban-column-header">
                   <span class="kanban-column-title">3. В очереди</span>
-                  <span class="kanban-column-count">${state.queue.length}</span>
+                  <span class="kanban-column-count">${state.queue.filter(q => q.status === 'scheduled').length}</span>
                 </div>
-                ${state.queue.length ? state.queue.map((item, idx) => `
+                ${state.queue.filter(q => q.status === 'scheduled').length ? state.queue.filter(q => q.status === 'scheduled').map((item, idx) => `
                   <div class="kanban-card dropping" draggable="true" ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'scheduled', id: '${escapeHtml(item.id)}' }))" data-action="tab" data-tab="queue" style="animation-delay: ${(idx + 2) * 0.05}s;">
-                    <div class="kanban-card-title">${escapeHtml(item.headline || "Пост")}</div>
+                    <div class="kanban-card-title">${escapeHtml(item.title || "Пост")}</div>
                     <div class="kanban-card-meta">
-                      <span class="chip ok" style="padding:2px 6px; font-size:10px;">${escapeHtml(item.platform)}</span>
-                      <span>${escapeHtml(item.publishDate)} ${escapeHtml(item.publishTime)}</span>
+                      <span class="chip ok" style="padding:2px 6px; font-size:10px;">${escapeHtml(platforms[item.platform]?.name || item.platform)}</span>
+                      <span>${escapeHtml(item.publishDate || "")} ${escapeHtml(item.publishTime || "")}</span>
                     </div>
                   </div>
                 `).join("") : renderEmpty("Очередь пуста")}
@@ -4135,22 +4135,23 @@ function renderMedia() {
               <div class="kanban-column" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragenter="this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="handleKanbanDrop(event, this, 'published')">
                 <div class="kanban-column-header">
                   <span class="kanban-column-title">4. Опубликовано</span>
-                  <span class="kanban-column-count">${publishedMock.length}</span>
+                  <span class="kanban-column-count">${publishedItems.length}</span>
                 </div>
-                ${publishedMock.map((item, idx) => `
+                ${publishedItems.length ? publishedItems.map((item, idx) => `
                   <div class="kanban-card dropping" style="opacity: 0.72; animation-delay: ${(idx + 4) * 0.05}s;" onclick="showToast('Запись уже в соцсети!')">
                     <div class="kanban-card-title" style="text-decoration: line-through;">${escapeHtml(item.title)}</div>
                     <div class="kanban-card-meta">
-                      <span class="chip info" style="padding:2px 6px; font-size:10px; background:rgba(23,23,23,.05); border:none;">${escapeHtml(item.platform)}</span>
-                      <span>${escapeHtml(item.date)}</span>
+                      <span class="chip info" style="padding:2px 6px; font-size:10px; background:rgba(23,23,23,.05); border:none;">${escapeHtml(platforms[item.platform]?.name || item.platform)}</span>
+                      <span>${escapeHtml(formatDateHuman(item.publishDate || ""))}</span>
                     </div>
                   </div>
-                `).join("")}
+                `).join("") : renderEmpty("Нет опубликованных")}
               </div>
             </div>
           </section>
         `;
       }
+
 
       function renderProjects() {
         const project = activeProject();
