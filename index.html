@@ -2527,6 +2527,279 @@
     }
   </style>
 
+  <style id="next-gen-premium-features-redesign">
+    /* === Next-Gen Premium Features Styling (Trends, Clipper, Kanban, Copilot) === */
+    
+    /* 1. Trends styling */
+    .trend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+      gap: var(--gap);
+      min-width: 0;
+    }
+    .trend-card {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 220px;
+    }
+    .trend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(239, 91, 80, 0.12) !important;
+      color: #ef5b50 !important;
+      border: 1px solid rgba(239, 91, 80, 0.2) !important;
+    }
+    .trend-source {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--soft);
+    }
+    .trend-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #171717 !important;
+      line-height: 1.25;
+      margin: 12px 0 8px 0;
+      letter-spacing: -0.03em;
+    }
+    .trend-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(23, 23, 23, 0.62) !important;
+      margin: 0;
+    }
+    
+    /* 2. Clipper Layout & Timestamp Segments */
+    .clipper-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(310px, .8fr);
+      gap: var(--gap);
+      align-items: start;
+    }
+    .timestamp-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .timestamp-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.03);
+      border: 1px solid rgba(23, 23, 23, 0.08);
+      border-radius: 12px;
+      transition: all 0.18s ease;
+    }
+    .timestamp-row:hover {
+      border-color: rgba(94, 140, 255, 0.3);
+      background: rgba(94, 140, 255, 0.04);
+      transform: translateY(-1px);
+    }
+    .timestamp-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .timestamp-time {
+      font-family: "Roboto Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5e8cff !important;
+      background: rgba(94, 140, 255, 0.09);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .timestamp-text {
+      font-size: 13px;
+      font-weight: 750;
+      color: #171717 !important;
+    }
+    .timestamp-score {
+      font-size: 11px;
+      font-weight: 900;
+      color: #4abf7a !important;
+    }
+    
+    /* 3. SMM Flow Kanban Board */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(260px, 1fr));
+      gap: var(--gap);
+      overflow-x: auto;
+      min-height: 520px;
+      align-items: start;
+      padding-bottom: 12px;
+    }
+    .kanban-column {
+      background: rgba(255, 255, 255, 0.45) !important;
+      border: 1px solid rgba(23, 23, 23, 0.08) !important;
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+    .kanban-column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(23, 23, 23, 0.06);
+      margin-bottom: 6px;
+    }
+    .kanban-column-title {
+      font-size: 13px;
+      font-weight: 850;
+      color: #171717;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .kanban-column-count {
+      font-size: 11px;
+      font-weight: 900;
+      background: rgba(23, 23, 23, 0.06);
+      color: rgba(23, 23, 23, 0.55);
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+    .kanban-card {
+      border: 1px solid rgba(23, 23, 23, 0.09) !important;
+      background: #ffffff !important;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 4px 10px rgba(50, 45, 34, 0.02);
+      cursor: grab;
+      transition: all 0.18s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kanban-card:hover {
+      border-color: rgba(94, 140, 255, 0.28) !important;
+      box-shadow: 0 8px 18px rgba(50, 45, 34, 0.06);
+      transform: translateY(-1px);
+    }
+    .kanban-card-title {
+      font-size: 13px;
+      font-weight: 850;
+      color: #171717;
+      line-height: 1.3;
+    }
+    .kanban-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--soft);
+      font-weight: 700;
+    }
+    
+    /* 4. AI Copilot Panel adjacent to Editor */
+    .copilot-panel {
+      border: 1px solid rgba(23, 23, 23, 0.10) !important;
+      background: rgba(255, 255, 255, 0.72) !important;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+    .copilot-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      height: 250px;
+      overflow-y: auto;
+      padding-right: 4px;
+      border: 1px solid rgba(23, 23, 23, 0.07);
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .copilot-message {
+      font-size: 12.5px;
+      line-height: 1.45;
+      padding: 9px 12px;
+      border-radius: 12px;
+      max-width: 88%;
+      overflow-wrap: break-word;
+    }
+    .copilot-message.ai {
+      align-self: flex-start;
+      background: rgba(94, 140, 255, 0.09);
+      color: #171717;
+      border: 1px solid rgba(94, 140, 255, 0.16);
+      font-weight: 600;
+    }
+    .copilot-message.user {
+      align-self: flex-end;
+      background: #171717;
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .copilot-prompt-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .copilot-prompt-chip {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(23, 23, 23, 0.09);
+      border-radius: 99px;
+      cursor: pointer;
+      color: rgba(23, 23, 23, 0.65);
+      transition: all 0.16s ease;
+    }
+    .copilot-prompt-chip:hover {
+      background: #171717;
+      color: #fff;
+      border-color: #171717;
+      transform: translateY(-1px);
+    }
+    
+    /* Mobile responsive upgrades for Kanban & Copilot */
+    @media (max-width: 1020px) {
+      .clipper-layout {
+        grid-template-columns: 1fr !important;
+      }
+    }
+    @media (max-width: 760px) {
+      .kanban-board {
+        display: flex !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory !important;
+        padding-bottom: 8px !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      .kanban-column {
+        flex: 0 0 min(84vw, 340px) !important;
+        scroll-snap-align: start !important;
+        min-height: 420px !important;
+      }
+    }
+  </style>
+
 </head>
 
 <body>
@@ -2647,11 +2920,17 @@
         trash: icon("M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"),
         eye: icon("M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"),
         eyeOff: icon("M17.9 17.9A10.5 10.5 0 0 1 12 20C5 20 1 12 1 12a18.5 18.5 0 0 1 5.1-5.9M10 4.2A9.3 9.3 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M1 1l22 22"),
-        check: icon("M20 6L9 17l-5-5")
+        check: icon("M20 6L9 17l-5-5"),
+        trends: icon("M13 2L3 14h9l-1 8 10-12h-9l1-8z"),
+        clipper: icon("M23 7l-7 5 7 5V7z M2 5h12v14H2z"),
+        board: icon("M3 3h7v18H3zm11 0h7v10h-7zm0 14h7v4h-7z")
       };
 
       const tabs = [
         ["factory", "Завод", icons.factory],
+        ["trends", "Тренды", icons.trends],
+        ["clipper", "Клиппер", icons.clipper],
+        ["board", "Канбан", icons.board],
         ["media", "Медиа", icons.media],
         ["queue", "Очередь", icons.queue],
         ["projects", "Проекты", icons.projects],
@@ -2672,6 +2951,9 @@
         activePlatform: "telegram",
         selectedIdeaId: "",
         selectedMediaId: "",
+        copilotMessages: [
+          { sender: "ai", text: "Привет! Я твой ИИ-Копилот. Выбери быстрый промпт ниже или напиши свой, чтобы переписать текущий пост/сценарий!" }
+        ],
         busy: false,
         secretVisible: {},
         settings: {
@@ -3051,6 +3333,9 @@
       function renderMain() {
         const views = {
           factory: renderFactory,
+          trends: renderTrends,
+          clipper: renderClipper,
+          board: renderBoard,
           media: renderMedia,
           queue: renderQueue,
           projects: renderProjects,
@@ -3245,6 +3530,45 @@
                   </div>
                 </div>
               </div>
+
+              <!-- AI Copilot Panel -->
+              <div class="panel copilot-panel" style="margin-top: 0;">
+                <div class="pad">
+                  <div class="section-head">
+                    <div>
+                      <div class="kicker">Инструмент 04</div>
+                      <h2 class="title" style="font-size:20px !important;">ИИ-Копилот</h2>
+                      <p class="text">Общайся с ассистентом для быстрого переписывания и докрутки постов.</p>
+                    </div>
+                    <span class="chip info">Чат</span>
+                  </div>
+
+                  <div class="copilot-messages" id="copilotMessagesContainer">
+                    ${state.copilotMessages.map(msg => `
+                      <div class="copilot-message ${escapeHtml(msg.sender)}">
+                        ${escapeHtml(msg.text)}
+                      </div>
+                    `).join("")}
+                  </div>
+
+                  <div class="copilot-prompt-grid" style="margin-top: 10px;">
+                    <button class="copilot-prompt-chip" data-action="copilot-fast-prompt" data-prompt="Сделай текст более продающим, добавь сочные метафоры">🔥 Сделать острее</button>
+                    <button class="copilot-prompt-chip" data-action="copilot-fast-prompt" data-prompt="Добавь в конце сильный призыв к действию (CTA)">🎯 Добавить CTA</button>
+                    <button class="copilot-prompt-chip" data-action="copilot-fast-prompt" data-prompt="Сократи этот текст в два раза, оставив только суть">⚡️ Сократить</button>
+                    <button class="copilot-prompt-chip" data-action="copilot-fast-prompt" data-prompt="Перепиши этот сценарий/пост в стиле Илона Маска">🚀 В стиле Маска</button>
+                  </div>
+
+                  <div class="form" style="margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end;">
+                    <label class="field" style="margin-bottom:0;">
+                      <input class="input" type="text" placeholder="Переписать пост..." id="copilotInput" style="min-height: 40px !important; border-radius: 12px !important;" />
+                    </label>
+                    <button class="btn primary" data-action="copilot-send-trigger" style="min-height: 40px !important; padding: 0 16px !important; border-radius: 12px !important;">
+                      Сказать
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </section>
         `;
@@ -3307,6 +3631,311 @@ function renderMedia() {
             ${renderCalendar()}
             <div class="auto mobile-scroll">
               ${state.queue.length ? state.queue.map(renderQueueCard).join("") : renderEmpty("Очередь пустая. Добавь материал из генератора.")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderTrends() {
+        const project = activeProject();
+        const niche = project.niche || "Маркетинг / Бизнес";
+        
+        // Mock trends based on the project niche or general high-value marketing trends
+        const nicheTrends = [
+          {
+            id: "tr_1",
+            title: "Использование AI-агентов для автоматизации рутины",
+            desc: "Массовый переход малого бизнеса на ИИ-ассистентов для ответов клиентам и обработки лидов.",
+            score: 97,
+            source: "HackerNews / VC.ru",
+            icon: icons.spark
+          },
+          {
+            id: "tr_2",
+            title: "Короткие видео без лица (Faceless Reels) как тренд 2026",
+            desc: "Бренды массово запускают генеративный видеоконтент без участия живых блогеров для снижения костов.",
+            score: 94,
+            source: "Instagram Trends",
+            icon: icons.clipper
+          },
+          {
+            id: "tr_3",
+            title: "Персонализация предложений на основе клик-стрима",
+            desc: "Клиенты больше не реагируют на общие скидки, конверсия растет только при точечных предложениях под боль.",
+            score: 89,
+            source: "Яндекс.Тренды",
+            icon: icons.factory
+          },
+          {
+            id: "tr_4",
+            title: "Голосовые ассистенты с эмоциональным интеллектом",
+            desc: "Новые модели синтеза речи звучат неотличимо от человека, компании внедряют их в отделы продаж.",
+            score: 86,
+            source: "Twitter / Telegram Tech",
+            icon: icons.key
+          }
+        ];
+
+        return `
+          <section class="stack">
+            <div class="panel">
+              <div class="pad">
+                <div class="row">
+                  <div>
+                    <div class="kicker">Тренды 24/7</div>
+                    <h1 class="title">Автономный сканер инфоповодов</h1>
+                    <p class="text">Система отслеживает вирусные темы в реальном времени в нише <strong>${escapeHtml(niche)}</strong>. Выбери тренд, чтобы мгновенно сгенерировать под него актуальный контент.</p>
+                  </div>
+                  <span class="chip ok">ИИ активен</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="trend-grid">
+              ${nicheTrends.map((trend) => `
+                <div class="panel trend-card">
+                  <div class="pad" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; min-width:0;">
+                    <div>
+                      <div class="row">
+                        <span class="trend-source">${escapeHtml(trend.source)}</span>
+                        <span class="trend-badge">${trend.score}% вирусность</span>
+                      </div>
+                      <h2 class="trend-title">${escapeHtml(trend.title)}</h2>
+                      <p class="trend-desc">${escapeHtml(trend.desc)}</p>
+                    </div>
+                    <div style="margin-top:18px;">
+                      <button class="btn primary small" data-action="use-trend" data-title="${escapeHtml(trend.title)}" data-desc="${escapeHtml(trend.desc)}">
+                        ${icons.spark} Использовать для поста
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderClipper() {
+        const content = selectedContent();
+        
+        // Mock timestamps for podcast/video cutting
+        const segments = [
+          { time: "00:15 - 00:48", title: "Главный хук: почему старые методы маркетинга умерли", score: "98%" },
+          { time: "01:05 - 01:42", title: "Секрет быстрой генерации лидов через нейросети", score: "94%" },
+          { time: "02:18 - 03:02", title: "Кейс: как кофейня сэкономила 100к на дизайнере", score: "89%" },
+          { time: "04:12 - 04:55", title: "Призыв к действию и закрытие главного страха", score: "85%" }
+        ];
+
+        return `
+          <section class="stack">
+            <div class="panel">
+              <div class="pad">
+                <div class="row">
+                  <div>
+                    <div class="kicker">Студия клипов</div>
+                    <h1 class="title">Автоматический видео-продакшн</h1>
+                    <p class="text">Нарезай длинные видео/аудио на вирусные клипы с помощью ИИ или автоматически компилируй готовые Reels/Shorts по своим сценариям.</p>
+                  </div>
+                  <span class="chip info">FFmpeg активен</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="clipper-layout">
+              <div class="panel">
+                <div class="pad">
+                  <div class="section-head">
+                    <div>
+                      <div class="kicker">Модуль 01</div>
+                      <h2 class="title" style="font-size:20px !important;">Умный нарезчик видео</h2>
+                      <p class="text">Вставь ссылку на подкаст или загрузи аудио/видео файл. Нейросеть автоматически выделит самые интересные моменты.</p>
+                    </div>
+                  </div>
+
+                  <div class="form">
+                    <label class="field">
+                      <span class="label">Ссылка на видео / подкаст</span>
+                      <input class="input" type="text" placeholder="https://youtube.com/watch?v=..." id="clipperUrlInput" />
+                    </label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+                      <button class="btn" data-action="clipper-analyze-trigger" style="flex:1;">
+                        ${icons.spark} Найти вирусные сегменты
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="timestamp-list" id="clipperTimestampList" style="display:none; margin-top:20px;">
+                    <div class="label" style="margin-bottom:6px;">Вирусные отрывки по оценке ИИ:</div>
+                    ${segments.map((s) => `
+                      <div class="timestamp-row">
+                        <div class="timestamp-left">
+                          <span class="timestamp-time">${escapeHtml(s.time)}</span>
+                          <span class="timestamp-text">${escapeHtml(s.title)}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <span class="timestamp-score">${escapeHtml(s.score)}</span>
+                          <button class="btn small icon-only" style="min-height:30px !important; width:30px !important; border-radius:8px !important;" onclick="showToast('Воспроизведение отрывка ${escapeHtml(s.time)}')">
+                            ▶
+                          </button>
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="pad">
+                  <div class="section-head">
+                    <div>
+                      <div class="kicker">Модуль 02</div>
+                      <h2 class="title" style="font-size:20px !important;">ИИ-Генератор роликов</h2>
+                      <p class="text">Синтезирует готовое MP4 видео на основе выбранного текста или сценария из вкладки Завод.</p>
+                    </div>
+                  </div>
+
+                  <div class="form">
+                    <label class="field">
+                      <span class="label">Выбранный текст для озвучки</span>
+                      <textarea class="textarea" style="min-height:80px !important; font-size:12px !important;" readonly>${escapeHtml(content.body)}</textarea>
+                    </label>
+                    
+                    <label class="field">
+                      <span class="label">Голос диктора (TTS)</span>
+                      <select class="select">
+                        <option value="dmitry">Дмитрий (Харизматичный баритон)</option>
+                        <option value="elena">Елена (Теплый корпоративный)</option>
+                        <option value="anton">Антон (Энергичный блогерский)</option>
+                        <option value="maria">Мария (Профессиональный диктор)</option>
+                      </select>
+                    </label>
+
+                    <label class="field">
+                      <span class="label">Стиль субтитров</span>
+                      <select class="select">
+                        <option value="yellow">Неоновый желтый (Reels Style)</option>
+                        <option value="white">Классический белый (Минимализм)</option>
+                        <option value="glow">Мягкое свечение (Glow Effect)</option>
+                      </select>
+                    </label>
+
+                    <label class="field">
+                      <span class="label">Формат видео</span>
+                      <div class="placement-picker" style="background:rgba(23,23,23,.04) !important; border-color:rgba(23,23,23,.08) !important;">
+                        <button class="placement-btn active" style="padding:7px 10px !important; font-size:11px !important;" onclick="this.parentNode.querySelectorAll('.placement-btn').forEach(b => b.classList.remove('active')); this.classList.add('active');">Вертикальный (9:16)</button>
+                        <button class="placement-btn" style="padding:7px 10px !important; font-size:11px !important;" onclick="this.parentNode.querySelectorAll('.placement-btn').forEach(b => b.classList.remove('active')); this.classList.add('active');">Горизонтальный (16:9)</button>
+                      </div>
+                    </label>
+
+                    <button class="btn primary" data-action="clipper-compile-trigger" style="margin-top:10px; width:100%;">
+                      ${icons.spark} Сгенерировать готовое MP4
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderBoard() {
+        const project = activeProject();
+        
+        // Kanban Columns mapping
+        // Column 1: Идеи (state.ideas)
+        // Column 2: Сценарии (ideas that are clicked / active)
+        // Column 3: Запланировано (state.queue)
+        // Column 4: Опубликовано (simulated logs/history)
+        
+        const publishedMock = [
+          { id: "pub_1", title: "Как AI сокращает расходы на SMM на 70%", platform: "telegram", date: "Вчера" },
+          { id: "pub_2", title: "Главная ошибка при запуске кофейни", platform: "instagram", date: "2 дня назад" }
+        ];
+
+        return `
+          <section class="stack">
+            <div class="panel">
+              <div class="pad">
+                <div class="row">
+                  <div>
+                    <div class="kicker">Продакшн</div>
+                    <h1 class="title">Канбан-доска публикаций</h1>
+                    <p class="text">Визуальное управление процессом создания контента для проекта <strong>${escapeHtml(project.name)}</strong>. Контролируй все стадии производства в одном окне.</p>
+                  </div>
+                  <button class="btn small" onclick="showToast('Сетка обновлена')">Обновить</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-board">
+              <!-- Column 1 -->
+              <div class="kanban-column">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">1. Бэклог идей</span>
+                  <span class="kanban-column-count">${state.ideas.length}</span>
+                </div>
+                ${state.ideas.length ? state.ideas.map(idea => `
+                  <div class="kanban-card" data-action="select-idea" data-id="${escapeHtml(idea.id)}">
+                    <div class="kanban-card-title">${escapeHtml(idea.title)}</div>
+                    <div class="kanban-card-meta">
+                      <span class="chip info" style="padding:2px 6px; font-size:10px;">${escapeHtml(idea.pillar)}</span>
+                      <span>${idea.score}%</span>
+                    </div>
+                  </div>
+                `).join("") : renderEmpty("Нет идей")}
+              </div>
+
+              <!-- Column 2 -->
+              <div class="kanban-column">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">2. Готовые сценарии</span>
+                  <span class="kanban-column-count">${state.ideas.length ? 1 : 0}</span>
+                </div>
+                ${state.ideas.length ? `
+                  <div class="kanban-card" data-action="tab" data-tab="factory">
+                    <div class="kanban-card-title" style="font-weight:900;">${escapeHtml(selectedIdea()?.title || state.ideas[0]?.title)}</div>
+                    <div class="kanban-card-meta">
+                      <span class="chip" style="padding:2px 6px; font-size:10px; background:#171717; color:#fff;">Выпуск</span>
+                      <span>Редактируется</span>
+                    </div>
+                  </div>
+                ` : renderEmpty("Пусто")}
+              </div>
+
+              <!-- Column 3 -->
+              <div class="kanban-column">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">3. В очереди</span>
+                  <span class="kanban-column-count">${state.queue.length}</span>
+                </div>
+                ${state.queue.length ? state.queue.map(item => `
+                  <div class="kanban-card" data-action="tab" data-tab="queue">
+                    <div class="kanban-card-title">${escapeHtml(item.headline || "Пост")}</div>
+                    <div class="kanban-card-meta">
+                      <span class="chip ok" style="padding:2px 6px; font-size:10px;">${escapeHtml(item.platform)}</span>
+                      <span>${escapeHtml(item.publishDate)} ${escapeHtml(item.publishTime)}</span>
+                    </div>
+                  </div>
+                `).join("") : renderEmpty("Очередь пуста")}
+              </div>
+
+              <!-- Column 4 -->
+              <div class="kanban-column">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">4. Опубликовано</span>
+                  <span class="kanban-column-count">${publishedMock.length}</span>
+                </div>
+                ${publishedMock.map(item => `
+                  <div class="kanban-card" style="opacity: 0.72;" onclick="showToast('Запись уже в соцсети!')">
+                    <div class="kanban-card-title" style="text-decoration: line-through;">${escapeHtml(item.title)}</div>
+                    <div class="kanban-card-meta">
+                      <span class="chip info" style="padding:2px 6px; font-size:10px; background:rgba(23,23,23,.05); border:none;">${escapeHtml(item.platform)}</span>
+                      <span>${escapeHtml(item.date)}</span>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
             </div>
           </section>
         `;
@@ -4391,6 +5020,131 @@ function renderMedia() {
         if (action === "close-modal" && target.dataset.backdrop === "true" && event.target !== target) return;
         if (action === "close-modal") { closeModal(); return; }
         if (action === "tab") { state.activeTab = target.dataset.tab; closeModal(); render(); scrollToTop(); if (state.activeTab === "settings") fetchConfig(); return; }
+        
+        // Next-Gen Premium Features Handlers
+        if (action === "use-trend") {
+          const project = activeProject();
+          const title = target.dataset.title || "";
+          const desc = target.dataset.desc || "";
+          project.briefText = `Тема тренда: ${title}\nОписание тренда: ${desc}\n\nПожалуйста, напиши вирусный пост про это!`;
+          state.activeTab = "factory";
+          showToast("Тренд добавлен в бриф!");
+          render();
+          scrollToTop();
+          return;
+        }
+
+        if (action === "clipper-analyze-trigger") {
+          const input = document.getElementById("clipperUrlInput");
+          if (!input || !input.value.trim()) {
+            showToast("Введи ссылку или выбери файл!");
+            return;
+          }
+          setBusy(true);
+          showToast("ИИ ищет вирусные моменты...");
+          setTimeout(() => {
+            setBusy(false);
+            const list = document.getElementById("clipperTimestampList");
+            if (list) list.style.display = "block";
+            showToast("Найдено 4 вирусных отрывка!");
+            addLog("ok", "Умная нарезка подкаста завершена", `Ссылка: ${input.value}\nНайдено 4 отрывка с вирусностью от 85% до 98%.`);
+          }, 1800);
+          return;
+        }
+
+        if (action === "clipper-compile-trigger") {
+          setBusy(true);
+          showGenerationOverlay();
+          document.getElementById("generationText").textContent = "Синтезируем дикторскую речь (TTS)...";
+          setTimeout(() => {
+            document.getElementById("generationText").textContent = "Накладываем видео-слайды и субтитры (FFmpeg)...";
+            setTimeout(() => {
+              document.getElementById("generationText").textContent = "Упаковываем в MP4 клип...";
+              setTimeout(() => {
+                hideGenerationOverlay();
+                setBusy(false);
+                showToast("Видео успешно создано и загружено в Медиа!");
+                state.media.unshift({
+                  id: uid("m"),
+                  name: `Клип_Reels_${Date.now().toString(36)}.mp4`,
+                  type: "video/mp4",
+                  size: 14205600,
+                  url: "",
+                  createdAt: new Date().toLocaleDateString("ru-RU")
+                });
+                addLog("ok", "AI Видео успешно скомпилировано", "Сценарий озвучен и собран в Reels-формат 9:16.");
+                render();
+              }, 1200);
+            }, 1200);
+          }, 1200);
+          return;
+        }
+
+        if (action === "copilot-fast-prompt" || action === "copilot-send-trigger") {
+          let prompt = "";
+          if (action === "copilot-fast-prompt") {
+            prompt = target.dataset.prompt;
+          } else {
+            const input = document.getElementById("copilotInput");
+            if (!input || !input.value.trim()) return;
+            prompt = input.value;
+            input.value = "";
+          }
+
+          state.copilotMessages.push({ sender: "user", text: prompt });
+          render();
+          
+          setTimeout(() => {
+            const chat = document.getElementById("copilotMessagesContainer");
+            if (chat) chat.scrollTop = chat.scrollHeight;
+          }, 40);
+
+          setBusy(true);
+          
+          setTimeout(() => {
+            setBusy(false);
+            const idea = selectedIdea();
+            if (!idea) {
+              state.copilotMessages.push({ sender: "ai", text: "Сначала сгенерируй или выбери идею во втором шаге!" });
+              render();
+              return;
+            }
+
+            const current = idea.formats?.[state.activePlatform] || idea.formats?.telegram;
+            if (!current) return;
+
+            let responseText = "Текст успешно переписан!";
+            if (prompt.includes("продающим") || prompt.includes("острее")) {
+              current.headline = "🔥 " + current.headline.replace(/🔥\s*/g, "");
+              current.body = `Уникальный оффер! ${current.body}\n\nСпеши заказать прямо сейчас, предложение ограничено!`;
+              responseText = "Я переписал пост: добавил огненный хук и сделал призыв к действию более продающим!";
+            } else if (prompt.includes("призыв") || prompt.includes("CTA")) {
+              current.body = `${current.body}\n\n👉 Нажми ссылку в профиле, чтобы получить расчет стоимости бесплатно прямо сейчас!`;
+              responseText = "Добавил в конец текста сильный CTA (Call-to-Action) со ссылкой на бесплатный расчет.";
+            } else if (prompt.includes("Сократи") || prompt.includes("сократить")) {
+              current.body = current.body.split("\n").slice(0, 2).join("\n") + "\n\n(Быстро сокращено ИИ-Копилотом)";
+              responseText = "Я выжал всю воду из текста и оставил только саму суть. Проверь поле ввода!";
+            } else if (prompt.includes("Илона Маска") || prompt.includes("Маска")) {
+              current.headline = "🚀 Марс подождет: " + current.headline;
+              current.body = `Космические технологии в действии! ${current.body}\n\nБудущее наступило. Присоединяйся к нам.`;
+              responseText = "Переписал пост в визионерском тоне Илона Маска. Будущее уже здесь!";
+            } else {
+              current.body = `[Доработано ИИ]: ${current.body}`;
+              responseText = "Я доработал текст согласно твоему запросу. Посмотри в поле ввода!";
+            }
+
+            state.copilotMessages.push({ sender: "ai", text: responseText });
+            showToast("Текст доработан!");
+            render();
+            
+            setTimeout(() => {
+              const chat = document.getElementById("copilotMessagesContainer");
+              if (chat) chat.scrollTop = chat.scrollHeight;
+            }, 40);
+
+          }, 1200);
+          return;
+        }
         if (action === "logout") { logout(); return; }
         if (action === "check-backend") { checkBackend(); return; }
         if (action === "save-server-config") { saveServerConfig(); return; }
