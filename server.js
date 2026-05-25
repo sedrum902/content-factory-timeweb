@@ -112,9 +112,12 @@ const DEMO_EMAIL = process.env.DEMO_EMAIL || "kubik";
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "kubik";
 const CLIENT_DEMO_EMAIL = process.env.CLIENT_DEMO_EMAIL || "client";
 const CLIENT_DEMO_PASSWORD = process.env.CLIENT_DEMO_PASSWORD || "client123";
+const TEST_DEMO_EMAIL = process.env.TEST_DEMO_EMAIL || "test2";
+const TEST_DEMO_PASSWORD = process.env.TEST_DEMO_PASSWORD || "test123";
 const CLIENT_SHARED_WORKSPACE = process.env.CLIENT_SHARED_WORKSPACE !== "false";
 const CLIENT_DAILY_GENERATION_LIMIT = Number(process.env.CLIENT_DAILY_GENERATION_LIMIT || 5);
 const DEBUG_HEALTH = process.env.DEBUG_HEALTH === "true";
+const DEBUG_LOGS = process.env.DEBUG_LOGS === "true";
 const AUTH_RATE_LIMIT_WINDOW_MS = Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const AUTH_RATE_LIMIT_MAX = Number(process.env.AUTH_RATE_LIMIT_MAX || 20);
 const AI_RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000);
@@ -222,6 +225,18 @@ const publishLimiter = rateLimit({
   message: { error: "Слишком много запросов на публикацию или загрузку. Подожди немного и попробуй снова." }
 });
 
+function isLimitedDemoEmail(email) {
+  const normalized = normalizeEmail(email);
+  return [CLIENT_DEMO_EMAIL, TEST_DEMO_EMAIL]
+    .map(normalizeEmail)
+    .filter(Boolean)
+    .includes(normalized);
+}
+
+function debugLog(...args) {
+  if (DEBUG_LOGS) console.log(...args);
+}
+
 for (const iconFile of [
   "favicon.ico",
   "favicon.png",
@@ -322,7 +337,8 @@ function validateAuthBody(body = {}, mode = "login") {
   const password = String(body.password || "");
   const isConfiguredDemoLogin = mode === "login" && (
     email === normalizeEmail(DEMO_EMAIL) ||
-    email === normalizeEmail(CLIENT_DEMO_EMAIL)
+    email === normalizeEmail(CLIENT_DEMO_EMAIL) ||
+    email === normalizeEmail(TEST_DEMO_EMAIL)
   );
 
   if (!isValidEmail(email) && !isConfiguredDemoLogin) {
@@ -711,8 +727,8 @@ function requireAuth(req, res, next) {
 }
 
 function enforceGenerationLimit(req, res, next) {
-  // Лимит применяется только к демонстрационному аккаунту клиента
-  if (req.user && req.user.email === CLIENT_DEMO_EMAIL) {
+  // Лимит применяется только к тестовым демо-аккаунтам.
+  if (req.user && isLimitedDemoEmail(req.user.email)) {
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
 
@@ -743,7 +759,7 @@ function getLimitInfo(req) {
     isUnlimited: true
   };
 
-  if (req.user && req.user.email === CLIENT_DEMO_EMAIL) {
+  if (req.user && isLimitedDemoEmail(req.user.email)) {
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
     const dbUser = req.store.users.find((u) => u.id === req.user.id);
@@ -1169,6 +1185,9 @@ app.post("/api/auth/login", authLimiter, (req, res) => {
       demoChanged = demoChanged || result.changed;
     } else if (email === CLIENT_DEMO_EMAIL && password === CLIENT_DEMO_PASSWORD) {
       const result = ensureDemoUser(store, CLIENT_DEMO_EMAIL, CLIENT_DEMO_PASSWORD, "client-demo-id");
+      demoChanged = demoChanged || result.changed;
+    } else if (email === TEST_DEMO_EMAIL && password === TEST_DEMO_PASSWORD) {
+      const result = ensureDemoUser(store, TEST_DEMO_EMAIL, TEST_DEMO_PASSWORD, "test-demo-2-id");
       demoChanged = demoChanged || result.changed;
     }
 
@@ -1600,7 +1619,7 @@ app.post("/api/upload", requireAuth, publishLimiter, (req, res, next) => {
 
 async function enhancePromptWithAi(userPrompt) {
   if (!TIMEWEB_API_KEY || !TIMEWEB_AGENT_ID) {
-    console.log("enhancePromptWithAi: No Timeweb credentials, using original prompt.");
+    debugLog("enhancePromptWithAi: no Timeweb credentials, using original prompt.");
     return userPrompt;
   }
   try {
@@ -1619,7 +1638,7 @@ Do not include any chat prefix, introduction, or markdown styling. Just output t
     const result = await callTimewebAgentApi(TIMEWEB_API_KEY, TIMEWEB_AGENT_ID, requestPayload);
     const enhanced = result?.completion?.choices?.[0]?.message?.content?.trim();
     if (enhanced) {
-      console.log(`enhancePromptWithAi successful. Original: "${userPrompt}" -> Enhanced: "${enhanced}"`);
+      debugLog("enhancePromptWithAi: prompt enhanced.");
       return enhanced;
     }
   } catch (err) {
@@ -1631,9 +1650,7 @@ Do not include any chat prefix, introduction, or markdown styling. Just output t
 async function callImageGenerator(prompt) {
   const seed = Math.floor(Math.random() * 1000000);
   const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}&private=true`;
-  
-  console.log(`callImageGenerator: Fetching image from Pollinations.ai for prompt: "${prompt}"`);
-  
+
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Ошибка генерации изображения: ${response.statusText} (${response.status})`);
@@ -1650,7 +1667,7 @@ app.post("/api/generate-image", requireAuth, aiLimiter, enforceGenerationLimit, 
       return res.status(400).json({ error: "Не передан текст промпта" });
     }
 
-    console.log(`POST /api/generate-image: original prompt = "${prompt}"`);
+    debugLog("POST /api/generate-image: request accepted.");
 
     // 1. Улучшение промпта с помощью ИИ
     const enhancedPrompt = await enhancePromptWithAi(prompt.trim());
@@ -1663,7 +1680,7 @@ app.post("/api/generate-image", requireAuth, aiLimiter, enforceGenerationLimit, 
     const newPath = path.join(uploadsDir, fileId);
     
     fs.writeFileSync(newPath, buffer);
-    console.log(`POST /api/generate-image: Saved generated image to ${newPath}`);
+    debugLog("POST /api/generate-image: generated image saved.");
 
     // 4. Формирование публичной ссылки и ответ
     const publicUrl = `${baseUrlFromRequest(req)}/uploads/${encodeURIComponent(fileId)}`;
@@ -2193,6 +2210,15 @@ function seedDemoUsers() {
       if (clientResult.changed) {
         changed = true;
         console.log(`Пользователь клиента '${CLIENT_DEMO_EMAIL}' успешно зарегистрирован по умолчанию.`);
+      }
+    }
+
+    // Seed second limited test account
+    if (TEST_DEMO_EMAIL) {
+      const testResult = ensureDemoUser(store, TEST_DEMO_EMAIL, TEST_DEMO_PASSWORD, "test-demo-2-id");
+      if (testResult.changed) {
+        changed = true;
+        console.log(`Тестовый пользователь '${TEST_DEMO_EMAIL}' успешно зарегистрирован по умолчанию.`);
       }
     }
 
