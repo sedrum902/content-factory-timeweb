@@ -187,6 +187,7 @@ const corsOrigin = process.env.CORS_ORIGIN
 
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.set("trust proxy", 1);
+app.disable("etag");
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
@@ -195,6 +196,22 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
+
+app.use((req, res, next) => {
+  const isHtmlRequest =
+    req.method === "GET" &&
+    (req.path === "/" ||
+      req.path.endsWith(".html") ||
+      (req.headers.accept || "").includes("text/html"));
+
+  if (isHtmlRequest) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Surrogate-Control", "no-store");
+  }
   next();
 });
 app.use(express.json({ limit: "10mb" }));
