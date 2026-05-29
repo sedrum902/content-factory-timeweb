@@ -710,6 +710,13 @@
 
     .queue-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 10px; }
     .queue-filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .queue-filter-row .input,
+    .queue-filter-row .select { min-height: 42px; }
+    .queue-filter-row .input { flex: 1 1 260px; }
+    .queue-filter-row .select { flex: 0 1 190px; }
+    .queue-bulk-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .queue-card.is-selected { border-color: rgba(94, 140, 255, 0.45) !important; background: rgba(94, 140, 255, 0.08) !important; }
+    .queue-select-btn { min-width: 42px; min-height: 42px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-weight: 900; }
     .queue-status-card { border: 1px solid var(--line); background: rgba(255,255,255,.58); border-radius: 18px; padding: 15px; min-width: 0; }
     .queue-status-card b { display: block; font-family: var(--font-display); font-size: 28px; letter-spacing: -.04em; line-height: 1; }
     .queue-status-card span { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.4; font-weight: 800; }
@@ -1849,6 +1856,17 @@
     .platform,
     .idea {
       -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn,
+    .nav-btn,
+    .platform,
+    .idea,
+    .calendar-item,
+    .toggle-secret,
+    .burger-btn,
+    .queue-select-btn {
+      min-height: 44px;
     }
 
     .btn:focus-visible,
@@ -3423,6 +3441,12 @@
         activePlatform: "telegram",
         selectedIdeaId: "",
         selectedMediaId: "",
+        queueSelection: [],
+        queueFilters: {
+          query: "",
+          status: "all",
+          platform: "all"
+        },
         busy: false,
         secretVisible: {},
         settings: {
@@ -3507,6 +3531,8 @@
           merged.settings = { ...clone(defaultState.settings), ...(parsed.settings || {}) };
           merged.planner = { ...clone(defaultState.planner), ...(parsed.planner || {}) };
           merged.activeTemplateId = parsed.activeTemplateId || defaultState.activeTemplateId;
+          merged.queueSelection = Array.isArray(parsed.queueSelection) ? parsed.queueSelection : [];
+          merged.queueFilters = { ...clone(defaultState.queueFilters), ...(parsed.queueFilters || {}) };
           if (merged.planner.publishDate === undefined || merged.planner.publishDate === null) merged.planner.publishDate = todayInputValue();
           if (merged.planner.publishTime === undefined || merged.planner.publishTime === null) merged.planner.publishTime = nextHourInputValue();
           // Always clear secret keys from client storage
@@ -3843,6 +3869,45 @@
           published: state.queue.filter((item) => item.status === "published" || item.state === "Опубликовано").length,
           errors: state.queue.filter((item) => item.status === "error" || item.state === "Ошибка").length
         };
+      }
+
+      function getQueueStatus(item) {
+        if (!item) return "scheduled";
+        if (item.status === "published" || item.state === "Опубликовано") return "published";
+        if (item.status === "error" || item.state === "Ошибка") return "error";
+        return "scheduled";
+      }
+
+      function filteredQueueItems() {
+        const query = String(state.queueFilters?.query || "").trim().toLowerCase();
+        const status = state.queueFilters?.status || "all";
+        const platform = state.queueFilters?.platform || "all";
+
+        return state.queue.filter((item) => {
+          const itemStatus = getQueueStatus(item);
+          if (status !== "all" && itemStatus !== status) return false;
+          if (platform !== "all" && String(item.platform || "") !== platform) return false;
+          if (!query) return true;
+          const hay = [
+            item.title,
+            item.body,
+            item.tags,
+            item.goal,
+            item.reason,
+            item.publishDate,
+            item.publishTime
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return hay.includes(query);
+        });
+      }
+
+      function selectedQueueIds() {
+        const existingIds = new Set(state.queue.map((item) => item.id));
+        state.queueSelection = (state.queueSelection || []).filter((id) => existingIds.has(id));
+        return state.queueSelection;
       }
 
       function activeTemplate() {
@@ -4238,6 +4303,8 @@ function renderMedia() {
 
       function renderQueue() {
         const stats = queueStats();
+        const filteredItems = filteredQueueItems();
+        const selectedCount = selectedQueueIds().length;
         return `
           <section class="stack">
             <div class="panel">
@@ -4255,6 +4322,29 @@ function renderMedia() {
                     <button class="btn danger small" data-action="clear-queue">Очистить</button>
                   </div>
                 </div>
+                <div class="queue-filter-row" style="margin-top:12px;">
+                  <input class="input" data-action="queue-filter-query" value="${escapeHtml(state.queueFilters.query || "")}" placeholder="Поиск по заголовку, тексту, цели..." />
+                  <select class="select" data-action="queue-filter-status">
+                    <option value="all" ${state.queueFilters.status === "all" ? "selected" : ""}>Все статусы</option>
+                    <option value="scheduled" ${state.queueFilters.status === "scheduled" ? "selected" : ""}>В очереди</option>
+                    <option value="published" ${state.queueFilters.status === "published" ? "selected" : ""}>Опубликовано</option>
+                    <option value="error" ${state.queueFilters.status === "error" ? "selected" : ""}>Ошибки</option>
+                  </select>
+                  <select class="select" data-action="queue-filter-platform">
+                    <option value="all" ${state.queueFilters.platform === "all" ? "selected" : ""}>Все площадки</option>
+                    <option value="telegram" ${state.queueFilters.platform === "telegram" ? "selected" : ""}>Telegram</option>
+                    <option value="instagram" ${state.queueFilters.platform === "instagram" ? "selected" : ""}>Instagram</option>
+                    <option value="youtube" ${state.queueFilters.platform === "youtube" ? "selected" : ""}>YouTube</option>
+                  </select>
+                </div>
+                <div class="queue-bulk-row">
+                  <span class="chip info">Найдено: ${filteredItems.length}</span>
+                  <span class="chip ${selectedCount ? "ok" : ""}">Выбрано: ${selectedCount}</span>
+                  <button class="btn small" data-action="queue-select-all">Выбрать всё</button>
+                  <button class="btn small" data-action="queue-clear-selection">Сбросить выбор</button>
+                  <button class="btn danger small" data-action="queue-remove-selected" ${selectedCount ? "" : "disabled"}>Удалить выбранное</button>
+                  <button class="btn small" data-action="queue-mark-published" ${selectedCount ? "" : "disabled"}>Отметить как опубликовано</button>
+                </div>
               </div>
             </div>
             <div class="queue-summary">
@@ -4265,7 +4355,7 @@ function renderMedia() {
             </div>
             ${renderCalendar()}
             <div class="auto mobile-scroll">
-              ${state.queue.length ? state.queue.map(renderQueueCard).join("") : renderEmpty("Очередь пустая. Добавь материал из генератора.")}
+              ${filteredItems.length ? filteredItems.map(renderQueueCard).join("") : renderEmpty("По текущим фильтрам ничего не найдено.")}
             </div>
           </section>
         `;
@@ -4890,8 +4980,10 @@ function renderMedia() {
       function renderQueueCard(item) {
         const media = state.media.find((m) => m.id === item.mediaId);
         const hasMedia = Boolean(media);
+        const status = getQueueStatus(item);
+        const selected = selectedQueueIds().includes(item.id);
         return `
-          <div class="queue-card">
+          <div class="queue-card ${selected ? "is-selected" : ""}">
             ${hasMedia ? `<div style="width:min(210px,100%); flex:0 0 auto;">${renderPreview(media)}</div>` : ""}
             <div class="item-body">
               <div class="row" style="align-items:flex-start;">
@@ -4899,12 +4991,13 @@ function renderMedia() {
                   <div class="item-title">${escapeHtml(item.title)}</div>
                   <div class="item-sub">${escapeHtml(formatDateHuman(item.publishDate || datePart(item.scheduledAt)))} · ${escapeHtml(item.publishTime || "без времени")} · ${escapeHtml(platforms[item.platform]?.name || item.platform)} · ${escapeHtml(item.state || "Готово")}</div>
                 </div>
-                <span class="chip ${item.state === "Ошибка" ? "bad" : item.state === "Опубликовано" ? "ok" : "info"}">${escapeHtml(item.state || "Готово")}</span>
+                <span class="chip ${status === "error" ? "bad" : status === "published" ? "ok" : "info"}">${escapeHtml(item.state || (status === "published" ? "Опубликовано" : status === "error" ? "Ошибка" : "Готово"))}</span>
               </div>
               <div class="body-text-preview">${escapeHtml(shorten(item.body, 170))}</div>
               <div class="item-sub" style="margin-top:8px;">${escapeHtml(item.goal || "цель не указана")}${item.reason ? " · " + escapeHtml(item.reason) : ""}</div>
               <div class="item-foot">
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="btn small queue-select-btn" data-action="queue-toggle-select" data-id="${escapeHtml(item.id)}" aria-pressed="${selected ? "true" : "false"}">${selected ? "✓" : "+"}</button>
                   <button class="btn small" data-action="open-queue" data-id="${escapeHtml(item.id)}">Открыть</button>
                   <button class="btn small" data-action="copy-queue" data-id="${escapeHtml(item.id)}">Скопировать</button>
                   ${item.platform === "telegram"
@@ -5791,6 +5884,67 @@ function renderMedia() {
         if (action === "open-queue") { openQueue(target.dataset.id); return; }
         if (action === "copy-current") { const c = selectedContent(); copyText([c.headline, "", c.body, "", c.tags].filter(Boolean).join("\n")); return; }
         if (action === "copy-queue") { const p = state.queue.find((item) => item.id === target.dataset.id); if (p) copyText([p.title, "", p.body, "", p.tags].filter(Boolean).join("\n")); return; }
+        if (action === "queue-toggle-select") {
+          const id = target.dataset.id;
+          if (!id) return;
+          const set = new Set(selectedQueueIds());
+          if (set.has(id)) set.delete(id);
+          else set.add(id);
+          state.queueSelection = Array.from(set);
+          saveState();
+          render();
+          return;
+        }
+        if (action === "queue-select-all") {
+          state.queueSelection = filteredQueueItems().map((item) => item.id);
+          saveState();
+          render();
+          return;
+        }
+        if (action === "queue-clear-selection") {
+          state.queueSelection = [];
+          saveState();
+          render();
+          return;
+        }
+        if (action === "queue-remove-selected") {
+          const ids = new Set(selectedQueueIds());
+          if (!ids.size) return;
+          if (!confirm(`Удалить выбранные записи (${ids.size})?`)) return;
+          state.queue = state.queue.filter((item) => !ids.has(item.id));
+          state.queueSelection = [];
+          saveState();
+          render();
+          showToast("Выбранные записи удалены");
+          return;
+        }
+        if (action === "queue-mark-published") {
+          const ids = new Set(selectedQueueIds());
+          if (!ids.size) return;
+          state.queue = state.queue.map((item) => {
+            if (!ids.has(item.id)) return item;
+            return { ...item, status: "published", state: "Опубликовано" };
+          });
+          state.queueSelection = [];
+          saveState();
+          render();
+          showToast("Статус обновлен");
+          return;
+        }
+        if (action === "queue-filter-status") {
+          state.queueFilters.status = target.value || "all";
+          state.queueSelection = [];
+          saveState();
+          render();
+          return;
+        }
+        if (action === "queue-filter-platform") {
+          state.queueFilters.platform = target.value || "all";
+          state.queueSelection = [];
+          saveState();
+          render();
+          return;
+        }
         if (action === "copy-text") { copyText(target.dataset.text || ""); return; }
         if (action === "copy-brief-template") { 
           copyText("Привет! Выступи в роли контент-маркетолога. Заполни бриф для проекта по следующим пунктам:\\n\\n1. Проект:\\n2. Ниша:\\n3. Что продаем (оффер):\\n4. Аудитория:\\n5. Главная боль:\\n6. Доказательство / факт:\\n7. Что нельзя писать банально:\\n8. Тон (например, коротко и экспертно):");
@@ -5868,6 +6022,13 @@ function renderMedia() {
 
       document.addEventListener("input", (event) => {
         const target = event.target;
+        if (target.matches('[data-action="queue-filter-query"]')) {
+          state.queueFilters.query = target.value || "";
+          state.queueSelection = [];
+          saveState();
+          render();
+          return;
+        }
         if (target.matches('[data-action="project-input"]')) { activeProject()[target.name] = target.value; saveState(); return; }
         if (target.matches('[data-action="setting-input"]')) { state.settings[target.name] = target.value; saveState(); return; }
         if (target.matches('[data-action="planner-input"]')) { ensurePlanner()[target.name] = target.value; saveState(); return; }
@@ -5887,6 +6048,20 @@ function renderMedia() {
 
       document.addEventListener("change", (event) => {
         const target = event.target;
+        if (target.matches('[data-action="queue-filter-status"]')) {
+          state.queueFilters.status = target.value || "all";
+          state.queueSelection = [];
+          saveState();
+          render();
+          return;
+        }
+        if (target.matches('[data-action="queue-filter-platform"]')) {
+          state.queueFilters.platform = target.value || "all";
+          state.queueSelection = [];
+          saveState();
+          render();
+          return;
+        }
         if (target.matches('[data-action="select-media"]')) { state.selectedMediaId = target.value; saveState(); return; }
         if (target.matches('[data-action="setting-input"]')) { render(); return; }
       });

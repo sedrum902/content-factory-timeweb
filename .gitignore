@@ -7,3 +7,6 @@ content-factory-timeweb-fix.zip
 users.json
 uploads/
 data/
+playwright-report/
+test-results/
+.lighthouseci/

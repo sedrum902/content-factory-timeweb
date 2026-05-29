@@ -47,6 +47,23 @@
    http://localhost:3000
    ```
 
+## Проверки качества интерфейса
+
+Перед деплоем запускайте базовые проверки:
+
+1. Smoke-тесты (desktop/tablet/mobile в нескольких viewport):
+   ```bash
+   npm run test:smoke
+   ```
+2. Accessibility-проверка страницы:
+   ```bash
+   npm run check:pa11y
+   ```
+3. Lighthouse-аудит:
+   ```bash
+   npm run check:lighthouse
+   ```
+
 ## Деплой на хостинг:
 Подробную инструкцию по запуску приложения в облаке Timeweb Cloud Apps смотрите в файле `TIMEWEB_DEPLOY.md`.
 
