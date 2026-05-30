@@ -138,37 +138,26 @@ const TIMEWEB_API_KEY = TIMEWEB_ENV.apiKey;
 const TIMEWEB_AGENT_ID = TIMEWEB_ENV.agentId;
 
 const runsInsideAppContainer = process.cwd() === "/app";
-const defaultDataDir = process.env.NODE_ENV === "production" || runsInsideAppContainer
-  ? path.join("/tmp", "content-factory-data")
+const defaultDataDir = runsInsideAppContainer
+  ? "/app/data"
   : path.join(process.cwd(), "data");
 const envDataDir = process.env.DATA_DIR || "";
-let DATA_DIR = envDataDir || defaultDataDir;
-const targetDataDir = DATA_DIR;
+const DATA_DIR = envDataDir || defaultDataDir;
 
 try {
-  if (!fs.existsSync(targetDataDir)) {
-    fs.mkdirSync(targetDataDir, { recursive: true });
-  }
-  // Проверяем возможность записи в эту папку
-  const testFile = path.join(targetDataDir, ".write_test");
-  fs.writeFileSync(testFile, "test", "utf8");
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(path.join(DATA_DIR, "uploads"), { recursive: true });
+  const testFile = path.join(DATA_DIR, ".write-test");
+  fs.writeFileSync(testFile, String(Date.now()));
   fs.unlinkSync(testFile);
-} catch (e) {
-  // Если папка read-only (как на Timeweb без смонтированного диска), откатываемся на /tmp
-  console.warn(`Папка data (${targetDataDir}) недоступна для записи, используем /tmp/content-factory-data:`, e.message);
-  DATA_DIR = path.join("/tmp", "content-factory-data");
+  console.log(`[Data] DATA_DIR writable: ${DATA_DIR}`);
+} catch (error) {
+  console.error(`[Data] DATA_DIR not writable: ${DATA_DIR}`, error.message);
+  process.exit(1);
 }
 
 const usersFile = path.join(DATA_DIR, "users.json");
 const uploadsDir = path.join(DATA_DIR, "uploads");
-
-for (const dir of [DATA_DIR, uploadsDir]) {
-  try {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  } catch (e) {
-    console.error("Ошибка создания папки:", dir, e.message);
-  }
-}
 
 // Автоматическая генерация и сохранение надежного секрета сессий при первом запуске
 let APP_SECRET = process.env.APP_SECRET;
@@ -914,6 +903,13 @@ function extractJson(text) {
     if (parsed) return parsed;
   }
 
+  // Regex bracket matcher repair fallback
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (match) {
+    const parsed = tryParseJson(match[0]);
+    if (parsed) return parsed;
+  }
+
   throw new Error("AI вернул не JSON. Сервер не нашёл JSON-объект в ответе модели.");
 }
 
@@ -1314,8 +1310,14 @@ function getHealthPayload() {
 }
 
 app.get(["/api/health", "/health", "/healthz"], (req, res) => {
-  console.log(`[HealthCheck] ${req.path} from ${req.ip || req.connection?.remoteAddress} - User-Agent: ${req.headers["user-agent"]}`);
-  res.json(getHealthPayload());
+  res.status(200).json({
+    ok: true,
+    service: "content-factory-backend",
+    build: APP_BUILD,
+    port: process.env.PORT,
+    env: process.env.NODE_ENV,
+    dataDir: process.env.DATA_DIR
+  });
 });
 
 app.post("/api/auth/register", authLimiter, async (req, res) => {
@@ -1756,10 +1758,10 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       `Твоя задача - превращать бриф в готовые материалы только для выбранной площадки (${platformLabel}).`,
       "Пиши емко, конкретно, без воды, без англицизмов, без длинного тире.",
       "Не придумывай несуществующие факты. Если факта нет, используй аккуратную формулировку без цифр.",
-      "Ответ должен быть СТРОГО валидным JSON-объектом: начинаться с { и заканчиваться }.",
+      "Верни строго один JSON-объект. Без markdown. Без пояснений. Без вопросов пользователю.",
+      "Если данных мало, используй разумные допущения и заполни поля нейтрально.",
       "Тебе КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать любые вводные или пояснительные слова, задавать вопросы пользователю или просить уточнения.",
-      "Если информации в брифе мало или он полностью пустой, сгенерируй идеи на основе названия проекта или на свое усмотрение для этой тематики, но обязательно верни строго валидный JSON по указанной схеме.",
-      "Верни только валидный JSON-объект. Без markdown. Без пояснений. Без вопросов пользователю. Если данных мало, всё равно сделай рабочую версию на основе переданного текста."
+      "Если информации в брифе мало или он полностью пустой, сгенерируй идеи на основе названия проекта или на свое усмотрение для этой тематики, но обязательно верни строго валидный JSON по указанной схеме."
     ].join(" ");
 
     const dbFields = [
@@ -2108,15 +2110,15 @@ async function enhancePromptWithAi(userPrompt) {
   }
   try {
     const systemPrompt = `You are a professional prompt engineer for AI image generators (such as Midjourney, Stable Diffusion, Pollinations).
-Your task is to take the input text (which can be a short Russian image description, a post headline, or a full article/post text) and generate a highly detailed, professional, photography-centric prompt in English that perfectly illustrates the subject.
-If the input text is a post or article, analyze its key theme/concept and design a highly compelling, professional commercial illustration or dramatic photo concept that fits the article perfectly.
+Your task is to take the input text (which can be a short Russian image description, a post headline, or a visual scenic brief) and generate a highly detailed, professional, photography-centric prompt in English or Russian that perfectly illustrates the subject.
+Ты не задаёшь уточняющие вопросы. Если входной текст похож на статью, сам извлеки из него визуальную сцену. Верни только финальный промпт для генерации. Без markdown, без списков, без объяснений, без вводных фраз.
 Vividly describe the style (e.g., professional commercial photography, cinematic lighting, 8k, highly detailed, realistic, award-winning composition), subject, details, lighting, and camera settings.
-Do not include any conversational prefix, introductory chat, explanation, questions, or markdown formatting. Output ONLY the final English prompt string.`;
+Do not include any conversational prefix, introductory chat, explanation, questions, or markdown formatting. Output ONLY the final prompt string. Do not ask questions under any circumstances. If details are missing, imagine them visually.`;
 
     const requestPayload = {
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: `Generate a detailed English image prompt to illustrate the following text: "${userPrompt}"` }
+        { role: "user", content: `Generate a detailed image prompt to illustrate the following text: "${userPrompt}"` }
       ]
     };
     
@@ -2147,6 +2149,19 @@ async function callImageGenerator(prompt) {
   return Buffer.from(arrayBuffer);
 }
 
+function buildImagePromptFromPost(postText, project = {}) {
+  return `
+Создай визуальный промт для рекламного изображения.
+Ниша: ${project.niche || ""}
+Оффер: ${project.offer || ""}
+Текст поста: ${postText}
+
+Верни только описание сцены для изображения, без вопросов, без пояснений.
+Формат: реалистичная фотография, кто в кадре, где находится, что делает, какой объект, свет, композиция.
+Не пиши текст на картинке.
+`.trim();
+}
+
 app.post("/api/generate-image", requireAuth, aiLimiter, enforceGenerationLimit, async (req, res) => {
   try {
     const prompt = cleanText(req.body?.prompt, 2000);
@@ -2156,8 +2171,17 @@ app.post("/api/generate-image", requireAuth, aiLimiter, enforceGenerationLimit, 
 
     debugLog("POST /api/generate-image: request accepted.");
 
+    // Retrieve active project context to build a visual scene brief
+    const user = req.store.users.find((u) => u.id === req.workspaceUser.id);
+    const workspace = user?.workspace || {};
+    const projects = workspace.projects || [];
+    const activeProjectId = workspace.activeProjectId || "";
+    const project = projects.find((p) => p.id === activeProjectId) || projects[0] || {};
+
+    const visualBrief = buildImagePromptFromPost(prompt.trim(), project);
+
     // 1. Улучшение промпта с помощью ИИ
-    const enhancedPrompt = await enhancePromptWithAi(prompt.trim());
+    const enhancedPrompt = await enhancePromptWithAi(visualBrief);
 
     // 2. Генерация изображения
     const buffer = await callImageGenerator(enhancedPrompt);
