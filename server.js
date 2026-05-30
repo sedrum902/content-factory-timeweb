@@ -1160,6 +1160,14 @@ app.get("/api/health", (req, res) => {
   res.json(payload);
 });
 
+app.get("/health", (req, res) => {
+  res.json({ ok: true, service: "content-factory-backend", status: "UP" });
+});
+
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
 app.post("/api/auth/register", authLimiter, (req, res) => {
   const auth = validateAuthBody(req.body, "register");
   if (auth.error) return res.status(400).json({ error: auth.error });
