@@ -29,7 +29,7 @@ loadPackedEnvVariable("logi");
 loadPackedEnvVariable("LOGI");
 loadPackedEnvVariable("TIMEWEB_ENV");
 
-const APP_BUILD = "2026-05-30-timeweb-health-v9";
+const APP_BUILD = "2026-05-30-timeweb-health-v10";
 const FALLBACK_TIMEWEB_AGENT_ID = "40f010e8-9dd7-473c-812f-81b65aba981f";
 
 function extractJwt(value) {
@@ -136,7 +136,10 @@ const TIMEWEB_AGENT_ID = TIMEWEB_ENV.agentId;
 const defaultDataDir = process.env.NODE_ENV === "production"
   ? path.join("/tmp", "content-factory-data")
   : path.join(process.cwd(), "data");
-let DATA_DIR = process.env.DATA_DIR || defaultDataDir;
+const envDataDir = process.env.DATA_DIR || "";
+let DATA_DIR = process.env.NODE_ENV === "production" && envDataDir.startsWith("/app")
+  ? defaultDataDir
+  : envDataDir || defaultDataDir;
 const targetDataDir = DATA_DIR;
 
 try {
@@ -1122,8 +1125,7 @@ function withTimeout(promise, ms, label) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-app.get("/api/health", (req, res) => {
-  console.log(`[HealthCheck] Received request from ${req.ip || req.connection?.remoteAddress} - User-Agent: ${req.headers["user-agent"]}`);
+function getHealthPayload() {
   const hasTimeweb = Boolean(TIMEWEB_API_KEY && TIMEWEB_AGENT_ID);
 
   const payload = {
@@ -1152,9 +1154,15 @@ app.get("/api/health", (req, res) => {
     };
     payload.node = process.version;
     payload.port = PORT;
+    payload.dataDir = DATA_DIR;
   }
 
-  res.json(payload);
+  return payload;
+}
+
+app.get(["/api/health", "/health", "/healthz"], (req, res) => {
+  console.log(`[HealthCheck] ${req.path} from ${req.ip || req.connection?.remoteAddress} - User-Agent: ${req.headers["user-agent"]}`);
+  res.json(getHealthPayload());
 });
 
 app.post("/api/auth/register", authLimiter, async (req, res) => {
@@ -2427,7 +2435,8 @@ async function seedDemoUsers() {
 }
 
 const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Content Factory backend started on port ${PORT}`);
+  console.log(`Content Factory backend ${APP_BUILD} started on port ${PORT}`);
+  console.log(`[Startup] NODE_ENV=${process.env.NODE_ENV || "development"} DATA_DIR=${DATA_DIR}`);
 
   // Запускаем планировщик автопостинга каждые 60 секунд
   setInterval(runScheduledPublishing, 60 * 1000);
