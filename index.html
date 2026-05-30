@@ -1151,6 +1151,7 @@
         key: icon("M21 2l-2 2M11.4 11.6a5 5 0 1 1-2.8-2.8L21 2v5h-5v5h-4.6z"),
         send: icon("M22 2L11 13M22 2l-7 20-4-9-9-4z"),
         copy: icon("M8 8h10v12H8z M6 16H4V4h12v2"),
+        file: icon("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M8 13h8M8 17h8M8 9h2"),
         close: icon("M18 6L6 18M6 6l12 12"),
         upload: icon("M12 16V4M7 9l5-5 5 5M4 20h16"),
         trash: icon("M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"),
@@ -1406,6 +1407,7 @@
       function showApp() {
         document.body.classList.add("logged-in");
         el.authScreen.style.display = "none";
+        el.app.style.display = "grid";
         render();
       }
 
@@ -1757,6 +1759,34 @@
           <div class="panel">
             <h1 class="title-xl">Маркетинговая база проекта</h1>
             <p class="text">Заполни коммерческий контекст бизнеса, чтобы ИИ-маркетолог и ИИ-критик генерировали сильный конвертящий контент.</p>
+          </div>
+
+          <div class="panel">
+            <div class="row">
+              <div>
+                <div class="kicker">Быстрое заполнение</div>
+                <h2 class="title">Импорт брифа или сайта</h2>
+                <p class="text">Вставь готовый бриф в окно ниже или дай ссылку на сайт. Приложение разложит информацию по полям базы проекта.</p>
+              </div>
+              <button class="btn" data-action="copy-generated-brief">${icons.copy} Скопировать шаблон брифа</button>
+            </div>
+            <div class="form" style="margin-top: 16px;">
+              <label class="field">
+                <span class="label">Ссылка на сайт</span>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <input class="input" data-action="project-input" name="landingPage" placeholder="https://site.ru" value="${escapeHtml(project.landingPage || "")}" />
+                  <button class="btn primary" data-action="import-project-url" style="white-space: nowrap;">Заполнить с сайта</button>
+                </div>
+              </label>
+              <label class="field">
+                <span class="label">Окно для готового брифа</span>
+                <textarea class="textarea" data-action="project-input" name="briefText" placeholder="Вставь сюда бриф клиента или шаблон, заполненный вручную" style="min-height: 150px;">${escapeHtml(project.briefText || "")}</textarea>
+              </label>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="btn primary" data-action="import-project-brief">${icons.spark} Разложить бриф по полям</button>
+                <button class="btn" data-action="fill-brief-template">${icons.file} Вставить шаблон в окно</button>
+              </div>
+            </div>
           </div>
 
           <div class="auto">
@@ -2333,6 +2363,13 @@
                 </label>
 
                 <label class="field">
+                  <span class="label">Сколько материалов сгенерировать</span>
+                  <select class="select" data-action="setting-input" name="ideaCount">
+                    ${[2, 3, 4].map(count => `<option value="${count}" ${String(state.settings.ideaCount || "3") === String(count) ? "selected" : ""}>${count} варианта</option>`).join("")}
+                  </select>
+                </label>
+
+                <label class="field">
                   <span class="label">Тема на сегодня (детализация)</span>
                   <textarea class="textarea" data-action="project-input" name="details" placeholder="Например: почему дешевый профиль желтеет и как не потерять 50к руб на замене" style="min-height: 80px;">${escapeHtml(project.details || "")}</textarea>
                 </label>
@@ -2344,6 +2381,9 @@
                 
                 <button class="btn primary" data-action="generate" style="margin-top: 16px; width: 100%; font-weight: 700;">
                   ${icons.spark} Запустить генерацию пакета
+                </button>
+                <button class="btn" data-action="fill-brief-template" style="width: 100%; justify-content: center;">
+                  ${icons.file} Сделать бриф под этот формат
                 </button>
               </div>
             </aside>
@@ -2696,6 +2736,79 @@
       async function fetchConfig() { if (!token()) return; try { const data = await request("/api/config"); state.settings = { ...state.settings, ...data }; render(); } catch (e) { } }
       async function saveServerConfig() { setBusy(true); try { await request("/api/config", { method: "POST", body: { telegramBotToken: state.settings.telegramBotToken, telegramChatId: state.settings.telegramChatId } }); showToast("Сохранено"); await fetchConfig(); } catch (e) { showToast("Ошибка"); } finally { setBusy(false); render(); } }
       async function checkAiKey() { setBusy(true); try { await request("/api/ai/test", { method: "POST" }); showToast("ИИ работает"); } catch (e) { showToast("Ошибка ИИ"); } finally { setBusy(false); } }
+      function applyProjectPatch(patch = {}) {
+        const project = activeProject();
+        Object.entries(patch).forEach(([key, value]) => {
+          if (value === undefined || value === null) return;
+          const text = String(value).trim();
+          if (!text) return;
+          project[key] = text;
+        });
+        saveState();
+        scheduleWorkspaceSave();
+      }
+
+      async function makeBriefTemplate({ copyOnly = false } = {}) {
+        setBusy(true);
+        try {
+          const data = await request("/api/project/brief-template", {
+            method: "POST",
+            body: {
+              project: activeProject(),
+              template: activeTemplate(),
+              ideaCount: state.settings.ideaCount || "3"
+            }
+          });
+          const brief = data.brief || "";
+          if (copyOnly) {
+            await copyText(brief);
+          } else {
+            activeProject().briefText = brief;
+            state.activeTab = "database";
+            saveState();
+            scheduleWorkspaceSave();
+            showToast("Шаблон брифа вставлен");
+          }
+        } catch (e) {
+          showToast(cleanError(e.message));
+        } finally {
+          setBusy(false);
+          render();
+        }
+      }
+
+      async function importProjectBrief() {
+        const text = String(activeProject().briefText || "").trim();
+        if (!text) { showToast("Вставь бриф"); return; }
+        setBusy(true);
+        try {
+          const data = await request("/api/project/import-brief", { method: "POST", body: { text } });
+          applyProjectPatch(data.project || {});
+          showToast("Бриф разложен по полям");
+        } catch (e) {
+          showToast(cleanError(e.message));
+        } finally {
+          setBusy(false);
+          render();
+        }
+      }
+
+      async function importProjectUrl() {
+        const url = String(activeProject().landingPage || "").trim();
+        if (!url) { showToast("Вставь ссылку"); return; }
+        setBusy(true);
+        try {
+          const data = await request("/api/project/import-url", { method: "POST", body: { url } });
+          applyProjectPatch(data.project || {});
+          showToast("Сайт разобран");
+        } catch (e) {
+          showToast(cleanError(e.message));
+        } finally {
+          setBusy(false);
+          render();
+        }
+      }
+
       async function generate() {
         setBusy(true); showGenerationOverlay();
         try {
@@ -2759,6 +2872,10 @@
         if (a === "logout") { logout(); return; }
         if (a === "apply-template") { applyTemplateById(t.dataset.template); render(); return; }
         if (a === "generate") { generate(); return; }
+        if (a === "fill-brief-template") { makeBriefTemplate(); return; }
+        if (a === "copy-generated-brief") { makeBriefTemplate({ copyOnly: true }); return; }
+        if (a === "import-project-brief") { importProjectBrief(); return; }
+        if (a === "import-project-url") { importProjectUrl(); return; }
         if (a === "select-idea") { state.selectedIdeaId = t.dataset.id; render(); return; }
         if (a === "select-platform") { state.activePlatform = t.dataset.platform; render(); return; }
         if (a === "add-to-queue") { addToQueue(); return; }
@@ -2820,6 +2937,7 @@
       document.addEventListener("change", (e) => {
         const t = e.target;
         if (t.matches('[data-action="apply-template-select"]')) { applyTemplateById(t.value); render(); }
+        if (t.matches('[data-action="setting-input"]')) { state.settings[t.name] = t.value; saveState(); scheduleWorkspaceSave(); }
         if (t.matches('[data-action="select-media"]')) { state.selectedMediaId = t.value; saveState(); }
       });
     });

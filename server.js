@@ -29,7 +29,7 @@ loadPackedEnvVariable("logi");
 loadPackedEnvVariable("LOGI");
 loadPackedEnvVariable("TIMEWEB_ENV");
 
-const APP_BUILD = "2026-05-30-timeweb-health-v11";
+const APP_BUILD = "2026-05-30-brief-import-v12";
 const FALLBACK_TIMEWEB_AGENT_ID = "40f010e8-9dd7-473c-812f-81b65aba981f";
 
 function extractJwt(value) {
@@ -963,6 +963,129 @@ function uniqueTexts(list) {
   });
 }
 
+const PROJECT_FIELD_DEFINITIONS = [
+  ["name", "Название проекта", 180],
+  ["niche", "Ниша", 240],
+  ["offer", "Что продвигаем / оффер", 1000],
+  ["price", "Цена / вилка цен", 500],
+  ["timelines", "Сроки", 500],
+  ["warranty", "Гарантии", 500],
+  ["geo", "Гео / регион", 500],
+  ["landingPage", "Сайт / посадочная страница", 500],
+  ["audience", "Сегменты аудитории", 1000],
+  ["awareness", "Стадия осознанности: Холодный / Теплый / Горячий", 120],
+  ["pain", "Главная боль аудитории", 1000],
+  ["fear", "Главное возражение / страх", 500],
+  ["reason", "Почему не покупают сейчас", 500],
+  ["proof", "Факты и доказательства", 1500],
+  ["facts", "Кейсы / отзывы / результаты", 2000],
+  ["goal", "Цель контента", 500],
+  ["nextStep", "Следующий шаг", 500],
+  ["leadMagnet", "Лид-магнит", 500],
+  ["tone", "Тон общения", 500],
+  ["stopWords", "Стоп-слова", 500],
+  ["competitors", "Конкуренты / альтернативы", 700],
+  ["advantages", "Преимущества", 1000],
+  ["details", "Тема для ближайшей генерации", 1000]
+];
+
+function normalizeProjectPatch(data = {}) {
+  const patch = {};
+  for (const [key, , maxLength] of PROJECT_FIELD_DEFINITIONS) {
+    if (data[key] === undefined || data[key] === null) continue;
+    patch[key] = cleanText(data[key], maxLength);
+  }
+  if (patch.awareness && !["Холодный", "Теплый", "Горячий"].includes(patch.awareness)) {
+    patch.awareness = "Теплый";
+  }
+  return patch;
+}
+
+function projectBriefTemplate({ project = {}, template = {}, ideaCount = 3 } = {}) {
+  const selectedFormat = template?.name || "выбранный формат контента";
+  const selectedGoal = template?.goal || project.goal || "получить заявки";
+  const formatNote = template?.briefAdd || template?.formatNote || "Опиши, какой материал нужен и какой результат должен получить читатель.";
+
+  return [
+    `Задача: сгенерировать ${ideaCount} варианта контента под формат "${selectedFormat}".`,
+    `Цель: ${selectedGoal}.`,
+    "",
+    "1. Проект и ниша:",
+    `- Название проекта: ${project.name || ""}`,
+    `- Ниша: ${project.niche || ""}`,
+    `- Гео: ${project.geo || ""}`,
+    `- Сайт / посадочная: ${project.landingPage || ""}`,
+    "",
+    "2. Что продвигаем:",
+    `- Оффер: ${project.offer || ""}`,
+    `- Цена / вилка: ${project.price || ""}`,
+    `- Сроки: ${project.timelines || ""}`,
+    `- Гарантии: ${project.warranty || ""}`,
+    "",
+    "3. Клиент:",
+    `- Кто покупает: ${project.audience || ""}`,
+    `- Стадия готовности: ${project.awareness || "Теплый"}`,
+    `- Главная боль: ${project.pain || ""}`,
+    `- Главное возражение: ${project.fear || ""}`,
+    `- Почему откладывают покупку: ${project.reason || ""}`,
+    "",
+    "4. Доказательства:",
+    `- Факты, цифры, документы, гарантия: ${project.proof || ""}`,
+    `- Кейсы, отзывы, результаты: ${project.facts || ""}`,
+    `- Чем отличаемся от конкурентов: ${project.advantages || ""}`,
+    "",
+    "5. Действие:",
+    `- Что должен сделать человек после материала: ${project.nextStep || ""}`,
+    `- Лид-магнит / безопасное обещание: ${project.leadMagnet || ""}`,
+    "",
+    "6. Тон и ограничения:",
+    `- Тон: ${project.tone || "уверенно, по-человечески, без воды"}`,
+    `- Не использовать: ${project.stopWords || "уникальный, качественный, профессиональный, надежный"}`,
+    "",
+    "7. Детали для этой генерации:",
+    `- Тема: ${project.details || ""}`,
+    `- Требования к формату: ${formatNote}`,
+    "",
+    "Важно: не придумывать факты, цены и гарантии. Если данных нет, писать аккуратно без выдуманных цифр."
+  ].join("\n");
+}
+
+function projectFieldsPrompt(sourceText, sourceLabel) {
+  const schema = PROJECT_FIELD_DEFINITIONS
+    .map(([key, label]) => `- "${key}": ${label}`)
+    .join("\n");
+
+  return [
+    "Разбери вводные по бизнесу и верни строго JSON-объект для заполнения базы проекта.",
+    "Пиши только те поля, которые можно уверенно извлечь или аккуратно сформулировать из исходника.",
+    "Не придумывай цены, гарантии, сроки, кейсы и цифры, если их нет в тексте.",
+    "Для пустых данных верни пустую строку.",
+    "Поле awareness должно быть только: Холодный, Теплый или Горячий.",
+    "",
+    "Поля JSON:",
+    schema,
+    "",
+    `Источник: ${sourceLabel}`,
+    sourceText,
+    "",
+    "Верни строго JSON без пояснений."
+  ].join("\n");
+}
+
+function stripHtmlToText(html) {
+  return String(html || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function fallbackIdeasFromText(text, ideaCount, project = {}) {
   const cleaned = stripAiReasoning(text)
     .replace(/```[\s\S]*?```/g, " ")
@@ -1417,6 +1540,100 @@ app.post("/api/ai/test", requireAuth, aiLimiter, async (req, res) => {
   }
 });
 
+app.post("/api/project/brief-template", requireAuth, (req, res) => {
+  const project = isPlainObject(req.body?.project) ? req.body.project : {};
+  const template = isPlainObject(req.body?.template) ? req.body.template : {};
+  const ideaCount = Math.max(2, Math.min(Number(req.body?.ideaCount || 3), 4));
+
+  res.json({
+    ok: true,
+    brief: projectBriefTemplate({ project, template, ideaCount })
+  });
+});
+
+app.post("/api/project/import-brief", requireAuth, aiLimiter, async (req, res) => {
+  try {
+    if (!TIMEWEB_API_KEY || !TIMEWEB_AGENT_ID) {
+      return res.status(400).json({ error: "Timeweb-агент не настроен на сервере." });
+    }
+
+    const text = cleanText(req.body?.text || "", 20000);
+    if (text.length < 20) {
+      return res.status(400).json({ error: "Вставь бриф хотя бы на несколько строк." });
+    }
+
+    const result = await callTimewebAgentApi(TIMEWEB_API_KEY, TIMEWEB_AGENT_ID, {
+      temperature: 0.15,
+      max_tokens: 2500,
+      messages: [
+        { role: "system", content: "Ты аккуратный маркетолог-аналитик. Извлекаешь факты из брифа и возвращаешь только валидный JSON." },
+        { role: "user", content: projectFieldsPrompt(text, "вставленный бриф") }
+      ]
+    });
+
+    const raw = result.completion.choices?.[0]?.message?.content || "";
+    const patch = normalizeProjectPatch(extractJson(raw));
+    res.json({ ok: true, project: patch });
+  } catch (error) {
+    console.error("project import brief error:", error);
+    res.status(500).json({ error: cleanText(error.message || "Не удалось разобрать бриф", 500) });
+  }
+});
+
+app.post("/api/project/import-url", requireAuth, aiLimiter, async (req, res) => {
+  try {
+    if (!TIMEWEB_API_KEY || !TIMEWEB_AGENT_ID) {
+      return res.status(400).json({ error: "Timeweb-агент не настроен на сервере." });
+    }
+
+    const rawUrl = cleanText(req.body?.url || "", 1000);
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(rawUrl);
+    } catch {
+      return res.status(400).json({ error: "Укажи полную ссылку, например https://site.ru" });
+    }
+
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: "Ссылка должна начинаться с http:// или https://" });
+    }
+
+    const response = await fetch(parsedUrl.toString(), {
+      headers: {
+        "User-Agent": "ContentFactoryBot/1.0 (+https://cf-kubik.pro)"
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) {
+      return res.status(400).json({ error: `Сайт не открылся: HTTP ${response.status}` });
+    }
+
+    const html = await response.text();
+    const pageText = cleanText(stripHtmlToText(html), 18000);
+    if (pageText.length < 80) {
+      return res.status(400).json({ error: "На странице мало текста для автозаполнения." });
+    }
+
+    const result = await callTimewebAgentApi(TIMEWEB_API_KEY, TIMEWEB_AGENT_ID, {
+      temperature: 0.12,
+      max_tokens: 3000,
+      messages: [
+        { role: "system", content: "Ты маркетолог-аналитик. Извлекаешь коммерческие факты с сайта и возвращаешь только валидный JSON." },
+        { role: "user", content: projectFieldsPrompt(pageText, parsedUrl.toString()) }
+      ]
+    });
+
+    const raw = result.completion.choices?.[0]?.message?.content || "";
+    const patch = normalizeProjectPatch(extractJson(raw));
+    patch.landingPage = parsedUrl.toString();
+    res.json({ ok: true, project: patch });
+  } catch (error) {
+    console.error("project import url error:", error);
+    res.status(500).json({ error: cleanText(error.message || "Не удалось разобрать сайт", 500) });
+  }
+});
+
 app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async (req, res) => {
   try {
     const timewebApiKey = TIMEWEB_API_KEY;
@@ -1435,17 +1652,32 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       });
     }
 
-    const ideaCount = Math.max(1, Math.min(Number(settings?.ideaCount || 10), 20));
+    const ideaCount = Math.max(2, Math.min(Number(settings?.ideaCount || 3), 4));
     const safeProject = {
       name: cleanText(project.name, 180),
       briefText: cleanText(project.briefText, 12000),
       niche: cleanText(project.niche || "", 240),
       offer: cleanText(project.offer || "", 1000),
+      price: cleanText(project.price || "", 500),
+      timelines: cleanText(project.timelines || "", 500),
+      warranty: cleanText(project.warranty || "", 500),
+      geo: cleanText(project.geo || "", 500),
+      landingPage: cleanText(project.landingPage || "", 500),
       audience: cleanText(project.audience || "", 1000),
+      awareness: cleanText(project.awareness || "", 120),
       pain: cleanText(project.pain || "", 1000),
+      fear: cleanText(project.fear || "", 500),
+      reason: cleanText(project.reason || "", 500),
       common: cleanText(project.common || "", 1000),
       proof: cleanText(project.proof || "", 1000),
+      facts: cleanText(project.facts || "", 2000),
+      goal: cleanText(project.goal || "", 500),
+      nextStep: cleanText(project.nextStep || "", 500),
+      leadMagnet: cleanText(project.leadMagnet || "", 500),
       tone: cleanText(project.tone || "", 240),
+      stopWords: cleanText(project.stopWords || "", 500),
+      competitors: cleanText(project.competitors || "", 700),
+      advantages: cleanText(project.advantages || "", 1000),
       details: cleanText(project.details || "", 1000)
     };
     const safeSettings = {
@@ -1505,11 +1737,24 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       briefSection = [
         safeProject.niche ? `- Ниша: ${safeProject.niche}` : "",
         safeProject.offer ? `- Что продвигаем / Оффер: ${safeProject.offer}` : "",
+        safeProject.price ? `- Цена / вилка: ${safeProject.price}` : "",
+        safeProject.timelines ? `- Сроки: ${safeProject.timelines}` : "",
+        safeProject.warranty ? `- Гарантии: ${safeProject.warranty}` : "",
+        safeProject.geo ? `- Гео: ${safeProject.geo}` : "",
+        safeProject.landingPage ? `- Сайт / посадочная: ${safeProject.landingPage}` : "",
         safeProject.audience ? `- Целевая аудитория: ${safeProject.audience}` : "",
+        safeProject.awareness ? `- Стадия осознанности: ${safeProject.awareness}` : "",
         safeProject.pain ? `- Боли и проблемы аудитории: ${safeProject.pain}` : "",
+        safeProject.fear ? `- Возражения и страхи: ${safeProject.fear}` : "",
+        safeProject.reason ? `- Почему не покупают сейчас: ${safeProject.reason}` : "",
         safeProject.common ? `- Что нельзя писать банально: ${safeProject.common}` : "",
         safeProject.proof ? `- Факты и доказательства: ${safeProject.proof}` : "",
+        safeProject.facts ? `- Кейсы / отзывы / результаты: ${safeProject.facts}` : "",
+        safeProject.nextStep ? `- Следующий шаг: ${safeProject.nextStep}` : "",
+        safeProject.leadMagnet ? `- Лид-магнит: ${safeProject.leadMagnet}` : "",
+        safeProject.advantages ? `- Преимущества: ${safeProject.advantages}` : "",
         safeProject.tone ? `- Тон общения: ${safeProject.tone}` : "",
+        safeProject.stopWords ? `- Стоп-слова: ${safeProject.stopWords}` : "",
         safeProject.details ? `- Тема или детали: ${safeProject.details}` : ""
       ].filter(Boolean).join("\n");
       
@@ -1571,12 +1816,12 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       ideas = normalizeIdeas(data);
     } catch (jsonError) {
       warning = "AI ответил не чистым JSON. Сервер собрал идеи из текстового ответа модели.";
-      ideas = fallbackIdeasFromText(text, 1, safeProject);
+      ideas = fallbackIdeasFromText(text, ideaCount, safeProject);
       console.warn("generate json fallback:", jsonError.message, String(text || "").slice(0, 800));
     }
 
     if (!ideas.length) {
-      ideas = fallbackIdeasFromText(text || "", 1, safeProject);
+      ideas = fallbackIdeasFromText(text || "", ideaCount, safeProject);
     }
 
     if (!ideas.length) {
