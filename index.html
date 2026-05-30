@@ -1170,7 +1170,6 @@
         ["queue", "Очередь", icons.queue],
         ["projects", "Проекты", icons.projects],
         ["settings", "Настройки", icons.settings],
-        ["logs", "Журнал", icons.logs],
         ["logout", "Выход", icons.logout]
       ];
 
@@ -1659,8 +1658,7 @@
           media: renderMedia,
           queue: renderQueue,
           projects: renderProjects,
-          settings: renderSettings,
-          logs: renderLogs
+          settings: renderSettings
         };
         el.main.innerHTML = (views[state.activeTab] || renderFactory)();
       }
@@ -2365,12 +2363,12 @@
                 <label class="field">
                   <span class="label">Сколько материалов сгенерировать</span>
                   <select class="select" data-action="setting-input" name="ideaCount">
-                    ${[2, 3, 4].map(count => `<option value="${count}" ${String(state.settings.ideaCount || "3") === String(count) ? "selected" : ""}>${count} варианта</option>`).join("")}
+                    ${[1, 2, 3, 4, 5].map(count => `<option value="${count}" ${String(state.settings.ideaCount || "3") === String(count) ? "selected" : ""}>${count} ${count === 1 ? 'вариант' : count < 5 ? 'варианта' : 'вариантов'}</option>`).join("")}
                   </select>
                 </label>
 
                 <label class="field">
-                  <span class="label">Тема на сегодня (детализация)</span>
+                  <span class="label">Фокусная тема генерации (акцент сегодняшних постов)</span>
                   <textarea class="textarea" data-action="project-input" name="details" placeholder="Например: почему дешевый профиль желтеет и как не потерять 50к руб на замене" style="min-height: 80px;">${escapeHtml(project.details || "")}</textarea>
                 </label>
 

@@ -1572,7 +1572,7 @@ app.post("/api/ai/test", requireAuth, aiLimiter, async (req, res) => {
 app.post("/api/project/brief-template", requireAuth, (req, res) => {
   const project = isPlainObject(req.body?.project) ? req.body.project : {};
   const template = isPlainObject(req.body?.template) ? req.body.template : {};
-  const ideaCount = Math.max(2, Math.min(Number(req.body?.ideaCount || 3), 4));
+  const ideaCount = Math.max(1, Math.min(Number(req.body?.ideaCount || 3), 5));
 
   res.json({
     ok: true,
@@ -1681,7 +1681,7 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       });
     }
 
-    const ideaCount = Math.max(2, Math.min(Number(settings?.ideaCount || 3), 4));
+    const ideaCount = Math.max(1, Math.min(Number(settings?.ideaCount || 3), 5));
     const safeProject = {
       name: cleanText(project.name, 180),
       briefText: cleanText(project.briefText, 12000),
@@ -1760,45 +1760,47 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       "Верни только валидный JSON-объект. Без markdown. Без пояснений. Без вопросов пользователю. Если данных мало, всё равно сделай рабочую версию на основе переданного текста."
     ].join(" ");
 
-    let briefSection = "";
-    if (safeProject.briefText && safeProject.briefText.trim()) {
-      briefSection = safeProject.briefText;
-    } else {
-      briefSection = [
-        safeProject.niche ? `- Ниша: ${safeProject.niche}` : "",
-        safeProject.offer ? `- Что продвигаем / Оффер: ${safeProject.offer}` : "",
-        safeProject.price ? `- Цена / вилка: ${safeProject.price}` : "",
-        safeProject.timelines ? `- Сроки: ${safeProject.timelines}` : "",
-        safeProject.warranty ? `- Гарантии: ${safeProject.warranty}` : "",
-        safeProject.geo ? `- Гео: ${safeProject.geo}` : "",
-        safeProject.landingPage ? `- Сайт / посадочная: ${safeProject.landingPage}` : "",
-        safeProject.audience ? `- Целевая аудитория: ${safeProject.audience}` : "",
-        safeProject.awareness ? `- Стадия осознанности: ${safeProject.awareness}` : "",
-        safeProject.pain ? `- Боли и проблемы аудитории: ${safeProject.pain}` : "",
-        safeProject.fear ? `- Возражения и страхи: ${safeProject.fear}` : "",
-        safeProject.reason ? `- Почему не покупают сейчас: ${safeProject.reason}` : "",
-        safeProject.common ? `- Что нельзя писать банально: ${safeProject.common}` : "",
-        safeProject.proof ? `- Факты и доказательства: ${safeProject.proof}` : "",
-        safeProject.facts ? `- Кейсы / отзывы / результаты: ${safeProject.facts}` : "",
-        safeProject.nextStep ? `- Следующий шаг: ${safeProject.nextStep}` : "",
-        safeProject.leadMagnet ? `- Лид-магнит: ${safeProject.leadMagnet}` : "",
-        safeProject.advantages ? `- Преимущества: ${safeProject.advantages}` : "",
-        safeProject.tone ? `- Тон общения: ${safeProject.tone}` : "",
-        safeProject.stopWords ? `- Стоп-слова: ${safeProject.stopWords}` : "",
-        safeProject.details ? `- Тема или детали: ${safeProject.details}` : ""
-      ].filter(Boolean).join("\n");
-      
-      if (!briefSection) {
-        briefSection = "Нет подробного брифа.";
-      }
+    const dbFields = [
+      safeProject.niche ? `- Ниша: ${safeProject.niche}` : "",
+      safeProject.offer ? `- Что продвигаем / Оффер: ${safeProject.offer}` : "",
+      safeProject.price ? `- Цена / вилка: ${safeProject.price}` : "",
+      safeProject.timelines ? `- Сроки: ${safeProject.timelines}` : "",
+      safeProject.warranty ? `- Гарантии: ${safeProject.warranty}` : "",
+      safeProject.geo ? `- Гео: ${safeProject.geo}` : "",
+      safeProject.landingPage ? `- Сайт / посадочная: ${safeProject.landingPage}` : "",
+      safeProject.audience ? `- Целевая аудитория: ${safeProject.audience}` : "",
+      safeProject.awareness ? `- Стадия осознанности: ${safeProject.awareness}` : "",
+      safeProject.pain ? `- Боли и проблемы аудитории: ${safeProject.pain}` : "",
+      safeProject.fear ? `- Возражения и страхи: ${safeProject.fear}` : "",
+      safeProject.reason ? `- Почему не покупают сейчас: ${safeProject.reason}` : "",
+      safeProject.common ? `- Что нельзя писать банально: ${safeProject.common}` : "",
+      safeProject.proof ? `- Факты и доказательства: ${safeProject.proof}` : "",
+      safeProject.facts ? `- Кейсы / отзывы / результаты: ${safeProject.facts}` : "",
+      safeProject.nextStep ? `- Следующий шаг: ${safeProject.nextStep}` : "",
+      safeProject.leadMagnet ? `- Лид-магнит: ${safeProject.leadMagnet}` : "",
+      safeProject.advantages ? `- Преимущества: ${safeProject.advantages}` : "",
+      safeProject.tone ? `- Тон общения: ${safeProject.tone}` : "",
+      safeProject.stopWords ? `- Стоп-слова: ${safeProject.stopWords}` : ""
+    ].filter(Boolean).join("\n");
+
+    const briefTextPart = safeProject.briefText && safeProject.briefText.trim()
+      ? `Общее описание брифа:\n${safeProject.briefText}`
+      : "";
+
+    let briefSection = [briefTextPart, dbFields].filter(Boolean).join("\n\n");
+    if (!briefSection) {
+      briefSection = "Нет подробного брифа.";
     }
 
     const userPrompt = [
       `Сгенерируй ровно ${ideaCount} идею/идеи для контента в формате JSON.`,
       "",
       `Проект: ${safeProject.name || ""}`,
-      `Вводные данные (Бриф):`,
+      safeProject.details ? `ГЛАВНАЯ ТЕМА / ФОКУС ГЕНЕРАЦИИ: "${safeProject.details}"` : "ГЛАВНАЯ ТЕМА: Разработать серию качественных постов по проекту.",
+      "",
+      `Вводные данные проекта (База коммерческого контекста):`,
       briefSection,
+      "",
       `Цель: ${safeSettings.objective}`,
       `Тон: ${safeSettings.style}`,
       "",
