@@ -2680,7 +2680,7 @@ async function seedDemoUsers() {
   }
 }
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`Content Factory backend ${APP_BUILD} started on port ${PORT}`);
   console.log(`[Startup] NODE_ENV=${process.env.NODE_ENV || "development"} DATA_DIR=${DATA_DIR}`);
 
