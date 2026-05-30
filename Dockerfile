@@ -1,24 +1,42 @@
 FROM node:20-slim
 
+RUN corepack enable
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update \
+  && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g pm2
+
+RUN groupadd --gid 2000 app \
+  && useradd --uid 2000 --gid 2000 -m -s /bin/bash app
+
 WORKDIR /app
 
-# Install curl for HTTP diagnostic utility and health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+COPY package.json package-lock.json* pnpm-lock.yaml* pnpm-workspace.yaml* ./
 
-COPY package*.json ./
-RUN npm ci
+RUN if [ -f pnpm-lock.yaml ]; then \
+      corepack prepare pnpm --activate && pnpm install --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then \
+      npm ci; \
+    else \
+      npm install; \
+    fi
 
-COPY . .
+COPY --chown=app:app . .
 
-# Ensure the data directory and uploads directory exist and have relaxed permissions
-RUN mkdir -p /app/data /app/data/uploads && chmod -R 777 /app/data
+RUN mkdir -p /app/data/uploads \
+  && chown -R app:app /app
+
+ENV NODE_ENV=production
+ENV PORT=8080
+ENV DATA_DIR=/app/data
 
 EXPOSE 8080
 
-ENV PORT=8080 \
-    NODE_ENV=production
+USER app
 
-HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
-  CMD curl -fs http://127.0.0.1:8080/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS "http://127.0.0.1:${PORT}/api/health" || exit 1
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

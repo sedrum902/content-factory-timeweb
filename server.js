@@ -100,7 +100,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT || 8080);
 
 const DEFAULT_AI_MODEL = process.env.DEFAULT_MODEL || process.env.DEFAULT_AI_MODEL || "timeweb-agent";
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || "").replace(/\/+$/, "");
@@ -138,9 +138,7 @@ const defaultDataDir = process.env.NODE_ENV === "production" || runsInsideAppCon
   ? path.join("/tmp", "content-factory-data")
   : path.join(process.cwd(), "data");
 const envDataDir = process.env.DATA_DIR || "";
-let DATA_DIR = envDataDir.startsWith("/app")
-  ? defaultDataDir
-  : envDataDir || defaultDataDir;
+let DATA_DIR = envDataDir || defaultDataDir;
 const targetDataDir = DATA_DIR;
 
 try {
@@ -797,6 +795,29 @@ function stripAiReasoning(text) {
     .trim();
 }
 
+function looksLikeClarification(text) {
+  const value = String(text || "").toLowerCase();
+  return (
+    value.includes("please provide") ||
+    value.includes("could you please") ||
+    value.includes("i need to clarify") ||
+    value.includes("нужно уточнить") ||
+    value.includes("подскажите") ||
+    value.includes("не хватает информации") ||
+    value.includes("уточните") ||
+    value.includes("задайте вопрос")
+  );
+}
+
+function buildFallbackImagePrompt(originalText) {
+  return `Realistic editorial photo for an automotive service marketing post.
+Scene: a professional mechanic in a clean car repair workshop inspecting a used contract engine on a workbench.
+Visible details: engine block, diagnostic tools, documents, VIN/checklist, serious expert atmosphere.
+Mood: trustworthy, practical, not stock-looking, natural light, real camera photo, high detail.
+No text, no logos, no watermark.
+Source topic: ${String(originalText).slice(0, 500)}`.trim();
+}
+
 function tryParseJson(value) {
   if (!value) return null;
 
@@ -1087,21 +1108,25 @@ function stripHtmlToText(html) {
 }
 
 function fallbackIdeasFromText(text, ideaCount, project = {}) {
-  const cleaned = stripAiReasoning(text)
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/[{}\[\]"]/g, " ")
-    .replace(/\r/g, "\n");
+  let titles = [];
 
-  const rawLines = cleaned
-    .split(/\n+/)
-    .map((line) => line
-      .replace(/^\s*(?:[-*•]|\d+[.)]|#+)\s*/g, "")
-      .replace(/^(title|headline|hook|идея|хук|заголовок)\s*[:\u2014-]\s*/i, "")
-      .trim())
-    .filter((line) => line.length >= 12 && line.length <= 180)
-    .filter((line) => !/^(json|формат|rules|правила|```)/i.test(line));
+  if (text && !looksLikeClarification(text)) {
+    const cleaned = stripAiReasoning(text)
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/[{}\[\]"]/g, " ")
+      .replace(/\r/g, "\n");
 
-  const titles = uniqueTexts(rawLines).slice(0, ideaCount);
+    const rawLines = cleaned
+      .split(/\n+/)
+      .map((line) => line
+        .replace(/^\s*(?:[-*•]|\d+[.)]|#+)\s*/g, "")
+        .replace(/^(title|headline|hook|идея|хук|заголовок)\s*[:\u2014-]\s*/i, "")
+        .trim())
+      .filter((line) => line.length >= 12 && line.length <= 180)
+      .filter((line) => !/^(json|формат|rules|правила|```)/i.test(line));
+
+    titles = uniqueTexts(rawLines).slice(0, ideaCount);
+  }
   const seed = [
     project.pain ? `Почему ${project.pain} и где бизнес теряет деньги` : "Почему контент не приводит заявки",
     project.offer ? `Как работает связка: ${project.offer}` : "Как собрать контент, который ведёт к заявке",
@@ -1727,7 +1752,8 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       "Не придумывай несуществующие факты. Если факта нет, используй аккуратную формулировку без цифр.",
       "Ответ должен быть СТРОГО валидным JSON-объектом: начинаться с { и заканчиваться }.",
       "Тебе КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать любые вводные или пояснительные слова, задавать вопросы пользователю или просить уточнения.",
-      "Если информации в брифе мало или он полностью пустой, сгенерируй идеи на основе названия проекта или на свое усмотрение для этой тематики, но обязательно верни строго валидный JSON по указанной схеме."
+      "Если информации в брифе мало или он полностью пустой, сгенерируй идеи на основе названия проекта или на свое усмотрение для этой тематики, но обязательно верни строго валидный JSON по указанной схеме.",
+      "Верни только валидный JSON-объект. Без markdown. Без пояснений. Без вопросов пользователю. Если данных мало, всё равно сделай рабочую версию на основе переданного текста."
     ].join(" ");
 
     let briefSection = "";
@@ -1790,7 +1816,8 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       "- Не используй слова: уникальный, профессиональный, качественный, надежный, индивидуальный подход.",
       "- Не используй символ длинного тире.",
       "",
-      `Верни строго JSON по схеме: ${jsonSchema}`
+      `Верни строго JSON по схеме: ${jsonSchema}`,
+      "Верни только валидный JSON-объект. Без markdown. Без пояснений. Без вопросов пользователю. Если данных мало, всё равно сделай рабочую версию на основе переданного текста."
     ].join("\n");
 
     const requestPayload = {
@@ -2087,14 +2114,16 @@ Do not include any conversational prefix, introductory chat, explanation, questi
     
     const result = await callTimewebAgentApi(TIMEWEB_API_KEY, TIMEWEB_AGENT_ID, requestPayload);
     const enhanced = result?.completion?.choices?.[0]?.message?.content?.trim();
-    if (enhanced) {
+    if (enhanced && !looksLikeClarification(enhanced)) {
       debugLog("enhancePromptWithAi: prompt enhanced.");
       return enhanced;
+    } else if (enhanced) {
+      console.warn("enhancePromptWithAi: AI returned clarification, using fallback image prompt:", enhanced);
     }
   } catch (err) {
     console.error("Failed to enhance prompt with AI agent:", err);
   }
-  return userPrompt;
+  return buildFallbackImagePrompt(userPrompt);
 }
 
 async function callImageGenerator(prompt) {
