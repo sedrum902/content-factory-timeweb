@@ -29,7 +29,7 @@ loadPackedEnvVariable("logi");
 loadPackedEnvVariable("LOGI");
 loadPackedEnvVariable("TIMEWEB_ENV");
 
-const APP_BUILD = "2026-05-30-marketing-machine-v4";
+const APP_BUILD = "2026-05-30-marketing-machine-v5";
 const FALLBACK_TIMEWEB_AGENT_ID = "40f010e8-9dd7-473c-812f-81b65aba981f";
 
 function extractJwt(value) {
