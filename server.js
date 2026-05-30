@@ -29,6 +29,10 @@ loadPackedEnvVariable("logi");
 loadPackedEnvVariable("LOGI");
 loadPackedEnvVariable("TIMEWEB_ENV");
 
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+process.env.PORT = process.env.PORT || '8080';
+process.env.DATA_DIR = process.env.DATA_DIR || '/app/data';
+
 const APP_BUILD = "2026-05-30-brief-import-v12";
 const FALLBACK_TIMEWEB_AGENT_ID = "40f010e8-9dd7-473c-812f-81b65aba981f";
 

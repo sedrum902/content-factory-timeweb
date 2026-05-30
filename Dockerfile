@@ -27,7 +27,16 @@ COPY --chown=app:app . .
 
 RUN mkdir -p /app/data/uploads \
   && chown -R app:app /app/data \
-  && chmod -R 775 /app/data
+  && chmod -R 775 /app/data \
+  && ls -la /app \
+  && ls -la /app/data
+
+RUN if npm run | grep -q "build"; then \
+      echo "Running default build"; \
+      npm run build; \
+    else \
+      echo "No build script found, skipping"; \
+    fi
 
 ENV NODE_ENV=production
 ENV PORT=8080
@@ -38,6 +47,6 @@ EXPOSE 8080
 USER app
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=5 \
-  CMD curl -fsS "http://127.0.0.1:${PORT}/api/health" || exit 1
+  CMD curl -fsS http://127.0.0.1:8080/api/health || exit 1
 
 CMD ["npm", "start"]
