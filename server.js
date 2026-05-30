@@ -29,7 +29,7 @@ loadPackedEnvVariable("logi");
 loadPackedEnvVariable("LOGI");
 loadPackedEnvVariable("TIMEWEB_ENV");
 
-const APP_BUILD = "2026-05-30-marketing-machine-v6";
+const APP_BUILD = "2026-05-30-marketing-machine-v7";
 const FALLBACK_TIMEWEB_AGENT_ID = "40f010e8-9dd7-473c-812f-81b65aba981f";
 
 function extractJwt(value) {
@@ -2410,10 +2410,16 @@ function seedDemoUsers() {
 }
 
 app.listen(PORT, "0.0.0.0", () => {
-  seedDemoUsers();
   console.log(`Content Factory backend started on port ${PORT}`);
 
   // Запускаем планировщик автопостинга каждые 60 секунд
   setInterval(runScheduledPublishing, 60 * 1000);
   console.log("[Scheduler] Планировщик автопостинга запущен (интервал: 60 сек)");
+
+  // Запуск синхронного тяжелого хэширования демо-пользователей с задержкой 4 сек, чтобы не блокировать Health Check
+  setTimeout(() => {
+    console.log("[Startup] Запуск отложенной инициализации демо-пользователей...");
+    seedDemoUsers();
+    console.log("[Startup] Отложенная инициализация демо-пользователей завершена.");
+  }, 4000);
 });
