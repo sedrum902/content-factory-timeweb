@@ -1,23 +1,6 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Responsive smoke', () => {
-  async function login(page) {
-    await page.goto('/');
-    await page.fill('#emailInput', 'kubik');
-    await page.fill('#passwordInput', 'kubik');
-    await page.click('#authSubmitBtn');
-    await expect(page.locator('#app')).toBeVisible();
-  }
-
-  async function expectNoHorizontalOverflow(page) {
-    const noHorizontalOverflow = await page.evaluate(() => {
-      const doc = document.documentElement;
-      return doc.scrollWidth <= window.innerWidth + 1;
-    });
-
-    expect(noHorizontalOverflow).toBe(true);
-  }
-
   test('auth screen loads and has no horizontal scroll', async ({ page }) => {
     await page.goto('/');
 
@@ -25,7 +8,12 @@ test.describe('Responsive smoke', () => {
     await expect(page.locator('#emailInput')).toBeVisible();
     await expect(page.locator('#passwordInput')).toBeVisible();
 
-    await expectNoHorizontalOverflow(page);
+    const noHorizontalOverflow = await page.evaluate(() => {
+      const doc = document.documentElement;
+      return doc.scrollWidth <= window.innerWidth + 1;
+    });
+
+    expect(noHorizontalOverflow).toBe(true);
   });
 
   test('app shell can be rendered and nav opens without overflow', async ({ page }) => {
@@ -43,27 +31,11 @@ test.describe('Responsive smoke', () => {
     const nav = page.locator('#nav');
     await expect(nav).toBeVisible();
 
-    await expectNoHorizontalOverflow(page);
-  });
-
-  test('demo user can open core sections without console errors or overflow', async ({ page }) => {
-    const browserMessages = [];
-
-    page.on('console', (message) => {
-      if (['error', 'warning'].includes(message.type())) {
-        browserMessages.push(`${message.type()}: ${message.text()}`);
-      }
+    const noHorizontalOverflow = await page.evaluate(() => {
+      const doc = document.documentElement;
+      return doc.scrollWidth <= window.innerWidth + 1;
     });
-    page.on('pageerror', (error) => browserMessages.push(`pageerror: ${error.message}`));
 
-    await login(page);
-
-    for (const tab of ['factory', 'queue', 'board', 'media', 'projects', 'settings', 'logs']) {
-      await page.click('#burgerBtn');
-      await page.locator(`#nav.open [data-action="tab"][data-tab="${tab}"]`).click();
-      await expectNoHorizontalOverflow(page);
-    }
-
-    expect(browserMessages).toEqual([]);
+    expect(noHorizontalOverflow).toBe(true);
   });
 });

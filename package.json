@@ -5,10 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test:smoke": "playwright test",
-    "test:smoke:headed": "playwright test --headed",
-    "test:smoke:ui": "playwright test --ui",
-    "check:pa11y": "start-server-and-test start http://127.0.0.1:3000 \"pa11y http://127.0.0.1:3000 --standard WCAG2AA\"",
+    "test:smoke": "npx --yes playwright test",
+    "test:smoke:headed": "npx --yes playwright test --headed",
+    "test:smoke:ui": "npx --yes playwright test --ui",
+    "check:pa11y": "npx --yes pa11y http://127.0.0.1:3000 --standard WCAG2AA",
     "check:lighthouse": "npx --yes @lhci/cli autorun --config=./lighthouserc.json"
   },
   "engines": {
@@ -23,10 +23,5 @@
     "helmet": "^8.2.0",
     "multer": "^2.1.1",
     "openai": "^4.38.2"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "pa11y": "^9.1.1",
-    "start-server-and-test": "^3.0.5"
   }
 }

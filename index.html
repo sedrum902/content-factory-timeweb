@@ -3032,7 +3032,6 @@
       opacity: 0 !important;
       overflow: hidden !important;
       pointer-events: none !important;
-      visibility: hidden !important;
       transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s ease !important;
       box-shadow: 0 20px 45px rgba(50, 45, 34, 0.12) !important;
       z-index: 999 !important;
@@ -3041,7 +3040,6 @@
       max-height: 520px !important;
       opacity: 1 !important;
       pointer-events: all !important;
-      visibility: visible !important;
       overflow-y: auto !important;
     }
     .nav-btn {
@@ -3266,10 +3264,6 @@
         el.burgerBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
         el.burgerBtn.setAttribute("aria-label", isOpen ? "Закрыть меню" : "Открыть меню");
         el.nav.setAttribute("aria-hidden", isOpen ? "false" : "true");
-        el.nav.toggleAttribute("inert", !isOpen);
-        el.nav.querySelectorAll(".nav-btn").forEach((button) => {
-          button.tabIndex = isOpen ? 0 : -1;
-        });
       }
 
       function openNavMenu() {
