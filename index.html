@@ -1161,6 +1161,7 @@
 
       const tabs = [
         ["dashboard", "Пульт", icons.logs],
+        ["database", "База проекта", icons.projects],
         ["factory", "Завод", icons.factory],
         ["board", "Канбан", icons.board],
         ["media", "Медиа", icons.media],
@@ -1213,7 +1214,7 @@
           name: "YouTube Shorts",
           platform: "youtube",
           goal: "быстро объяснить пользу и привести к действию",
-          style: "ясно, энергично, без долгого вступления",
+          style: "ясно, экспертно, энергично",
           formatNote: "Сценарий Shorts: хук 0-3 сек, пример, вывод, призыв. Добавь текст на экране.",
           briefAdd: "Нужен короткий сценарий YouTube Shorts с быстрым объяснением пользы.",
           tag: "shorts"
@@ -1237,6 +1238,16 @@
           formatNote: "Сгенерируй 10 коротких заголовков до 10-15 слов и 10 вариантов CTA. Боль, конкретика, безопасность.",
           briefAdd: "Нужны формулировки для баннеров РСЯ: боль, результат, доказательство или безопасность, короткий призыв.",
           tag: "реклама"
+        },
+        {
+          id: "faq-objection",
+          name: "FAQ / Закрытие возражений",
+          platform: "telegram",
+          goal: "снять сомнения и страхи клиентов",
+          style: "честно, убедительно, с фактами и доказательствами",
+          formatNote: "Сгенерируй Q&A серию из 5 частых возражений (дорого, долго, нет гарантии) и сильных аргументированных ответов со ссылкой на доказательства и цены.",
+          briefAdd: "Нужен пост FAQ по закрытию главных возражений на основе фактов и цен.",
+          tag: "доверие"
         }
       ];
 
@@ -1251,6 +1262,7 @@
         selectedMediaId: "",
         busy: false,
         secretVisible: {},
+        critic: null,
         settings: {
           model: "",
           ideaCount: "3",
@@ -1288,7 +1300,22 @@
             common: "",
             tone: "",
             details: "",
-            status: "активный"
+            status: "активный",
+            price: "",
+            timelines: "",
+            warranty: "",
+            geo: "",
+            landingPage: "",
+            awareness: "Теплый",
+            fear: "",
+            reason: "",
+            facts: "",
+            goal: "",
+            nextStep: "",
+            leadMagnet: "",
+            stopWords: "",
+            competitors: "",
+            advantages: ""
           }
         ],
         ideas: [],
@@ -1623,6 +1650,7 @@
       function renderMain() {
         const views = {
           dashboard: renderDashboard,
+          database: renderDatabase,
           factory: renderFactory,
           board: renderBoard,
           media: renderMedia,
@@ -1720,17 +1748,561 @@
         `;
       }
 
+      // --- MARKETING BASE & VAULT: renderDatabase ---
+      function renderDatabase() {
+        const project = activeProject();
+        
+        return `
+          <div class="panel">
+            <h1 class="title-xl">Маркетинговая база проекта</h1>
+            <p class="text">Заполни коммерческий контекст бизнеса, чтобы ИИ-маркетолог и ИИ-критик генерировали сильный конвертящий контент.</p>
+          </div>
+
+          <div class="auto">
+            <!-- Блок 1: Продукт и Бизнес -->
+            <div class="panel">
+              <h2 class="title" style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
+                ${icons.projects} Продукт и Бизнес
+              </h2>
+              <div class="form" style="margin-top: 16px;">
+                <label class="field">
+                  <span class="label">Название проекта</span>
+                  <input class="input" data-action="project-input" name="name" value="${escapeHtml(project.name)}" />
+                </label>
+                <label class="field">
+                  <span class="label">Ниша</span>
+                  <input class="input" data-action="project-input" name="niche" placeholder="Например: натяжные потолки в СПБ" value="${escapeHtml(project.niche || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Что продвигаем / Оффер</span>
+                  <textarea class="textarea" data-action="project-input" name="offer" placeholder="Например: Скидка 15% при заказе до конца недели + бесплатный выезд замерщика в день обращения" style="min-height: 80px;">${escapeHtml(project.offer || "")}</textarea>
+                </label>
+                <label class="field">
+                  <span class="label">Цена / Вилка цен</span>
+                  <input class="input" data-action="project-input" name="price" placeholder="Например: от 490 руб/м2" value="${escapeHtml(project.price || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Сроки оказания услуг</span>
+                  <input class="input" data-action="project-input" name="timelines" placeholder="Например: монтаж за 3 часа, выезд замерщика за 1 час" value="${escapeHtml(project.timelines || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Гарантии</span>
+                  <input class="input" data-action="project-input" name="warranty" placeholder="Например: 15 лет по договору, не пожелтеет и не провиснет" value="${escapeHtml(project.warranty || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Гео / Регион</span>
+                  <input class="input" data-action="project-input" name="geo" placeholder="Например: Москва и Московская область (до 30 км от МКАД)" value="${escapeHtml(project.geo || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Посадочная страница / Сайт</span>
+                  <input class="input" data-action="project-input" name="landingPage" placeholder="Например: https://potolki-spb.ru/quiz" value="${escapeHtml(project.landingPage || "")}" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Блок 2: Целевая аудитория -->
+            <div class="panel">
+              <h2 class="title" style="color: var(--info); display: flex; align-items: center; gap: 8px;">
+                ${icons.logs} Целевая аудитория
+              </h2>
+              <div class="form" style="margin-top: 16px;">
+                <label class="field">
+                  <span class="label">Сегменты аудитории</span>
+                  <textarea class="textarea" data-action="project-input" name="audience" placeholder="Например: Новоселы в ЖК (хотят быстро и без хлопот), Мамы с детьми (нужна экологичность, без запаха), Дизайнеры..." style="min-height: 80px;">${escapeHtml(project.audience || "")}</textarea>
+                </label>
+                <label class="field">
+                  <span class="label">Стадия осознанности клиента</span>
+                  <select class="select" data-action="project-input" name="awareness">
+                    <option value="Холодный" ${project.awareness === "Холодный" ? "selected" : ""}>Холодный (Не осознает проблему / Сравнивает категории)</option>
+                    <option value="Теплый" ${project.awareness === "Теплый" ? "selected" : ""}>Теплый (Сравнивает решения и условия)</option>
+                    <option value="Горячий" ${project.awareness === "Горячий" ? "selected" : ""}>Горячий (Выбирает подрядчика и готов покупать)</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="label">Главная боль аудитории</span>
+                  <textarea class="textarea" data-action="project-input" name="pain" placeholder="Например: Боятся, что монтажники оставят горы мусора, порвут обои или испортят мебель. Переживают из-за скрытых наценок в конце." style="min-height: 80px;">${escapeHtml(project.pain || "")}</textarea>
+                </label>
+                <label class="field">
+                  <span class="label">Главное возражение / Страх</span>
+                  <input class="input" data-action="project-input" name="fear" placeholder="Например: У вас дорого / дешевые потолки будут вонять химией" value="${escapeHtml(project.fear || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Причина не купить прямо сейчас</span>
+                  <input class="input" data-action="project-input" name="reason" placeholder="Например: Ждут окончания черновых работ / Думают сделать сами" value="${escapeHtml(project.reason || "")}" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="auto" style="margin-top: 24px;">
+            <!-- Блок 3: Банк доказательств / Proof Vault -->
+            <div class="panel">
+              <h2 class="title" style="color: var(--success); display: flex; align-items: center; gap: 8px;">
+                ${icons.check} Банк доказательств / Proof Vault
+              </h2>
+              <div class="form" style="margin-top: 16px;">
+                <label class="field">
+                  <span class="label">Факты и УТП (цифры, склад, сертификаты)</span>
+                  <textarea class="textarea" data-action="project-input" name="proof" placeholder="Например: Собственное производство 1200м2, сертифицированные полотна MSD Premium (Германия) без запаха, 14 штатных бригад с опытом от 5 лет, работаем строго по ГОСТ." style="min-height: 100px;">${escapeHtml(project.proof || "")}</textarea>
+                </label>
+                <label class="field">
+                  <span class="label">Кейсы / Результаты / Отзывы</span>
+                  <textarea class="textarea" data-action="project-input" name="facts" placeholder="Например: Кейс: Потолок в 3-комнатной квартире за 6 часов без пыли. Отзыв Ирины: 'Монтажники приехали вовремя, убрали за собой строительным пылесосом, цена осталась как в смете'." style="min-height: 100px;">${escapeHtml(project.facts || "")}</textarea>
+                </label>
+              </div>
+            </div>
+
+            <!-- Блок 4: Конверсии и Позиционирование -->
+            <div class="panel">
+              <h2 class="title" style="color: #a855f7; display: flex; align-items: center; gap: 8px;">
+                ${icons.spark} Конверсии и Позиционирование
+              </h2>
+              <div class="form" style="margin-top: 16px;">
+                <div class="auto-tight">
+                  <label class="field">
+                    <span class="label">Цель материала</span>
+                    <input class="input" data-action="project-input" name="goal" placeholder="Например: Получить заявку на замер" value="${escapeHtml(project.goal || "")}" />
+                  </label>
+                  <label class="field">
+                    <span class="label">Следующий шаг (CTA)</span>
+                    <input class="input" data-action="project-input" name="nextStep" placeholder="Например: Пройти квиз-тест на расчет цены" value="${escapeHtml(project.nextStep || "")}" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span class="label">Лид-магнит / Усиление CTA</span>
+                  <input class="input" data-action="project-input" name="leadMagnet" placeholder="Например: Каталог трендовых светильников 2026 в подарок" value="${escapeHtml(project.leadMagnet || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Тон общения / Голос бренда</span>
+                  <input class="input" data-action="project-input" name="tone" placeholder="Например: Экспертный, заботливый, без заносчивости и сложных терминов" value="${escapeHtml(project.tone || "")}" />
+                </label>
+                <label class="field">
+                  <span class="label">Стоп-слова / Запреты</span>
+                  <input class="input" data-action="project-input" name="stopWords" placeholder="Например: Уникальный, качественный, профессиональный, низкие цены" value="${escapeHtml(project.stopWords || "")}" />
+                </label>
+                <div class="auto-tight">
+                  <label class="field">
+                    <span class="label">Конкуренты (чем мы лучше)</span>
+                    <input class="input" data-action="project-input" name="competitors" placeholder="Например: Частники (нет гарантии), крупные сети (накручивают смету)" value="${escapeHtml(project.competitors || "")}" />
+                  </label>
+                  <label class="field">
+                    <span class="label">Наши преимущества</span>
+                    <input class="input" data-action="project-input" name="advantages" placeholder="Например: Чистый монтаж с пылесосом, оплата после сдачи" value="${escapeHtml(project.advantages || "")}" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // --- PARSERS & VISUALIZERS ---
+      function parseReelsScript(text) {
+        if (!text) return [];
+        const scenes = [];
+        const blocks = text.split(/(?=Кадр \d|Сцена \d|\b\d\b\.?\s*(?:Кадр|Сцена))/i);
+        
+        blocks.forEach((block) => {
+          const trimmed = block.trim();
+          if (!trimmed) return;
+          
+          const titleMatch = trimmed.match(/^(?:Кадр|Сцена)?\s*\d+[:\.]?\s*/i);
+          const title = titleMatch ? titleMatch[0].replace(/[:\.]\s*$/, "") : "";
+          
+          const timeMatch = trimmed.match(/(?:\d+[-–]\d+\s*(?:сек|с)|секунд[ыа]?\s*\d+[-–]\d+|\b\d+\s*сек\b)/i);
+          const time = timeMatch ? timeMatch[0] : "";
+          
+          const visualMatch = trimmed.match(/(?:Визуал|В кадре|Кадр|Что в кадре)[:\-]?\s*([^\n]+)/i);
+          const visual = visualMatch ? visualMatch[1].trim() : "";
+          
+          const voiceMatch = trimmed.match(/(?:Голос|Речь|Диктор|Текст)[:\-]?\s*([^\n]+)/i);
+          const voice = voiceMatch ? voiceMatch[1].trim() : trimmed.substring(0, 100);
+          
+          const screenMatch = trimmed.match(/(?:Текст на экране|Субтитры|Надпись)[:\-]?\s*([^\n]+)/i);
+          const screenText = screenMatch ? screenMatch[1].trim() : "";
+          
+          scenes.push({
+            title: title || `Кадр ${scenes.length + 1}`,
+            time: time || (scenes.length === 0 ? "0-3 сек" : scenes.length === 1 ? "3-12 сек" : scenes.length === 2 ? "12-20 сек" : "20-25 сек"),
+            visual: visual || trimmed.substring(0, 80) + "...",
+            voice: voice || "",
+            screenText: screenText || ""
+          });
+        });
+        
+        return scenes;
+      }
+
+      function renderReelsVisualizer(text) {
+        const scenes = parseReelsScript(text);
+        if (!scenes.length) return "";
+        
+        return `
+          <div class="panel" style="margin-top: 24px; border: 1px solid var(--border); background: rgba(255,255,255,0.01);">
+            <h3 class="title-sm" style="color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              ${icons.media} Раскадровка сценария (Reels/Shorts)
+            </h3>
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                <thead>
+                  <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted);">
+                    <th style="padding: 10px; width: 80px;">Сцена</th>
+                    <th style="padding: 10px; width: 100px;">Тайминг</th>
+                    <th style="padding: 10px;">Что в кадре (Визуал/B-roll)</th>
+                    <th style="padding: 10px;">Закадровый голос</th>
+                    <th style="padding: 10px; width: 180px;">Субтитры/Текст</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${scenes.map(s => `
+                    <tr style="border-bottom: 1px solid var(--border); vertical-align: top;">
+                      <td style="padding: 10px; font-weight: 600; color: var(--accent);">${escapeHtml(s.title)}</td>
+                      <td style="padding: 10px;"><span class="chip info" style="font-size: 11px;">${escapeHtml(s.time)}</span></td>
+                      <td style="padding: 10px; color: var(--text-main); font-style: italic;">${escapeHtml(s.visual)}</td>
+                      <td style="padding: 10px; color: var(--text-main); font-weight: 500;">${escapeHtml(s.voice)}</td>
+                      <td style="padding: 10px; color: var(--text-muted); font-family: var(--font-mono); font-size: 12px;">${escapeHtml(s.screenText)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function parseRsyScript(text) {
+        if (!text) return { headlines: [], texts: [], concepts: [], ctas: [] };
+        
+        const headlines = [];
+        const texts = [];
+        const concepts = [];
+        const ctas = [];
+        
+        const lines = text.split("\n");
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed) return;
+          
+          if (/Заголовок\s*\d*[:\-]/i.test(trimmed) || /^\d+\.\s*(?:Заголовок|Заголовок\s+\d+)/i.test(trimmed)) {
+            headlines.push(trimmed.replace(/^(?:Заголовок\s*\d*[:\-]|^\d+\.\s*(?:Заголовок|Заголовок\s+\d+)[:\-]?)\s*/i, ""));
+          } else if (/Текст\s*\d*[:\-]/i.test(trimmed) || /^\d+\.\s*(?:Текст|Текст объявления)/i.test(trimmed)) {
+            texts.push(trimmed.replace(/^(?:Текст\s*\d*[:\-]|^\d+\.\s*(?:Текст|Текст объявления)[:\-]?)\s*/i, ""));
+          } else if (/Концепция|Визуал|Картинка/i.test(trimmed)) {
+            concepts.push(trimmed.replace(/^(?:Визуальная концепция\s*\d*[:\-]|Визуал\s*\d*[:\-]|Концепция\s*\d*[:\-])\s*/i, ""));
+          } else if (/CTA|Призыв/i.test(trimmed)) {
+            ctas.push(trimmed.replace(/^(?:CTA\s*\d*[:\-]|Призыв\s*\d*[:\-]|Призыв к действию\s*\d*[:\-]?)\s*/i, ""));
+          }
+        });
+        
+        return { headlines, texts, concepts, ctas };
+      }
+
+      function renderRsyVisualizer(text) {
+        const data = parseRsyScript(text);
+        
+        if (!data.headlines.length && !data.texts.length) {
+          const cards = text.split(/\n\s*\n/).filter(b => b.trim().length > 10);
+          if (!cards.length) return "";
+          return `
+            <div class="panel" style="margin-top: 24px; border: 1px solid var(--border);">
+              <h3 class="title-sm" style="color: var(--accent); margin-bottom: 12px;">💥 Рекламные объявления для копирования</h3>
+              <div class="stack" style="gap: 12px;">
+                ${cards.map((c, i) => `
+                  <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                    <div style="font-size: 13px; white-space: pre-line; line-height: 1.5; color: var(--text-main);">${escapeHtml(c.trim())}</div>
+                    <button class="btn small" data-action="copy-text-custom" data-text="${escapeHtml(c.trim())}">${icons.copy} Скопировать</button>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }
+        
+        return `
+          <div class="panel" style="margin-top: 24px; border: 1px solid var(--border); background: rgba(255,255,255,0.01);">
+            <h3 class="title-sm" style="color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+              ${icons.spark} Пакет объявлений РСЯ (Яндекс.Директ)
+            </h3>
+            
+            <div class="auto" style="gap: 16px;">
+              <div>
+                <h4 class="title-sm" style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Заголовки (до 35/56 символов)</h4>
+                <div class="stack" style="gap: 8px;">
+                  ${data.headlines.map((h, i) => `
+                    <div style="padding: 8px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                      <span style="font-size: 12px; font-weight: 500;">${i+1}. ${escapeHtml(h)}</span>
+                      <button class="btn small icon-only" data-action="copy-text-custom" data-text="${escapeHtml(h)}" title="Скопировать" style="min-height: 24px; padding: 4px 6px;">${icons.copy}</button>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+              
+              <div>
+                <h4 class="title-sm" style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Тексты объявлений (до 81 символа)</h4>
+                <div class="stack" style="gap: 8px;">
+                  ${data.texts.map((t, i) => `
+                    <div style="padding: 8px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                      <span style="font-size: 12px; color: var(--text-muted);">${i+1}. ${escapeHtml(t)}</span>
+                      <button class="btn small icon-only" data-action="copy-text-custom" data-text="${escapeHtml(t)}" title="Скопировать" style="min-height: 24px; padding: 4px 6px;">${icons.copy}</button>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+            
+            ${data.concepts.length ? `
+              <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <h4 class="title-sm" style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Визуальные концепции</h4>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  ${data.concepts.map(c => `<span class="chip info" style="font-size: 12px; padding: 6px 10px;">🎨 ${escapeHtml(c)}</span>`).join("")}
+                </div>
+              </div>
+            ` : ""}
+            
+            ${data.ctas.length ? `
+              <div style="margin-top: 12px;">
+                <h4 class="title-sm" style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Призывы к действию (CTA)</h4>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  ${data.ctas.map(cta => `<span class="chip ok" style="font-size: 12px; padding: 6px 10px;">🎯 ${escapeHtml(cta)}</span>`).join("")}
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        `;
+      }
+
+      function parseFaqScript(text) {
+        if (!text) return [];
+        
+        const qaList = [];
+        const blocks = text.split(/(?=Вопрос \d|Q\b\d\b|Вопрос:|Q:)/i);
+        
+        blocks.forEach((block) => {
+          const trimmed = block.trim();
+          if (!trimmed) return;
+          
+          const qMatch = trimmed.match(/(?:Вопрос|Q)[:\-]?\s*([^\n]+)/i);
+          const question = qMatch ? qMatch[1].trim() : trimmed.split("\n")[0];
+          
+          const aMatch = trimmed.match(/(?:Ответ|A)[:\-]?\s*([\s\S]+)/i);
+          const answer = aMatch ? aMatch[1].trim() : trimmed.split("\n").slice(1).join("\n").trim();
+          
+          if (question && answer) {
+            qaList.push({
+              question: question.replace(/^[QВопрос\s\d:\-\.]+/i, ""),
+              answer: answer.replace(/^[AОтвет\s\d:\-\.]+/i, "")
+            });
+          }
+        });
+        
+        return qaList;
+      }
+
+      function renderFaqVisualizer(text) {
+        const qaList = parseFaqScript(text);
+        if (!qaList.length) return "";
+        
+        return `
+          <div class="panel" style="margin-top: 24px; border: 1px solid var(--border); background: rgba(255,255,255,0.01);">
+            <h3 class="title-sm" style="color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              ${icons.logs} Интерактивный FAQ / Снятие возражений
+            </h3>
+            <div class="stack" style="gap: 10px;">
+              ${qaList.map((qa, i) => `
+                <details style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer;" ${i === 0 ? 'open' : ''}>
+                  <summary style="font-weight: 600; color: var(--accent); outline: none; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                    <span>❓ ${escapeHtml(qa.question)}</span>
+                    <span style="font-size: 12px; color: var(--text-muted);">&#9662;</span>
+                  </summary>
+                  <div style="margin-top: 10px; color: var(--text-main); font-size: 13px; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 10px; cursor: default;">
+                    <p style="margin-bottom: 12px;">${escapeHtml(qa.answer).replaceAll("\n", "<br>")}</p>
+                    <button class="btn small" data-action="copy-text-custom" data-text="${escapeHtml(qa.question + "\n\n" + qa.answer)}" style="min-height: 28px;">
+                      ${icons.copy} Скопировать вопрос и ответ
+                    </button>
+                  </div>
+                </details>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function parseAlternativeHooks(text) {
+        if (!text) return [];
+        const hooks = [];
+        
+        const match = text.match(/(?:Варианты хуков|Альтернативные хуки|3 варианта первого абзаца|3 варианта хука)[:\-]?\s*([\s\S]+?)(?=\n\n[А-ЯA-Z]|\n\n$|$)/i);
+        
+        if (match) {
+          const lines = match[1].split("\n");
+          lines.forEach((line) => {
+            const trimmed = line.trim();
+            if (trimmed && /^[0-9\-\*\•\.]/.test(trimmed)) {
+              hooks.push(trimmed.replace(/^[0-9\-\*\•\.\s]+/, ""));
+            }
+          });
+        }
+        
+        return hooks;
+      }
+
+      function renderAlternativeHooksVisualizer(text) {
+        const hooks = parseAlternativeHooks(text);
+        if (!hooks.length) return "";
+        
+        return `
+          <div class="panel" style="margin-top: 16px; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.01);">
+            <h4 class="title-sm" style="font-size: 13px; color: var(--accent); margin-bottom: 8px;">🔥 Альтернативные хуки (кликни для замены первого абзаца):</h4>
+            <div class="stack" style="gap: 8px;">
+              ${hooks.map(h => `
+                <div class="project-card" style="padding: 10px; cursor: pointer; border-color: var(--border); font-size: 12px; line-height: 1.4;" onclick="swapFirstParagraph('${escapeHtml(h).replaceAll("'", "\\'")}')">
+                  <strong>Вариант:</strong> ${escapeHtml(h)}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      window.swapFirstParagraph = function(newParagraph) {
+        const textarea = document.querySelector('[data-action="edit-content"][data-field="body"]');
+        if (!textarea) return;
+        
+        const originalText = textarea.value;
+        const paragraphs = originalText.split(/\n\s*\n/);
+        
+        if (paragraphs.length > 0) {
+          paragraphs[0] = newParagraph;
+          const newText = paragraphs.join("\n\n");
+          textarea.value = newText;
+          
+          const event = new Event('input', { bubbles: true });
+          textarea.dispatchEvent(event);
+          
+          showToast("Хук успешно заменен!");
+        }
+      };
+
+      async function refineText(action) {
+        const textarea = document.querySelector('[data-action="edit-content"][data-field="body"]');
+        if (!textarea) return;
+        
+        const originalText = textarea.value;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        
+        const isSelection = start !== end;
+        const textToRefine = isSelection ? originalText.substring(start, end) : originalText;
+        
+        if (!textToRefine.trim()) {
+          showToast("Сначала выдели или напиши текст для улучшения");
+          return;
+        }
+        
+        setBusy(true);
+        showToast("ИИ улучшает текст...");
+        try {
+          const data = await request("/api/refine", {
+            method: "POST",
+            body: {
+              text: textToRefine,
+              action: action,
+              project: activeProject()
+            }
+          });
+          
+          if (data.ok && data.refinedText) {
+            let newText;
+            if (isSelection) {
+              newText = originalText.substring(0, start) + data.refinedText + originalText.substring(end);
+            } else {
+              newText = data.refinedText;
+            }
+            
+            textarea.value = newText;
+            
+            const event = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(event);
+            
+            showToast("Текст успешно улучшен!");
+          } else {
+            showToast("Не удалось улучшить текст");
+          }
+        } catch (e) {
+          showToast(cleanError(e.message));
+        } finally {
+          setBusy(false);
+          render();
+        }
+      }
+
       function renderFactory() {
         const project = activeProject();
         const content = selectedContent();
         const planner = ensurePlanner();
+
+        let criticHtml = "";
+        if (state.critic) {
+          const c = state.critic;
+          criticHtml = `
+            <div class="panel" style="border: 1px solid var(--accent); background: rgba(250, 204, 21, 0.03); margin-bottom: 24px;">
+              <h2 class="title" style="display: flex; align-items: center; gap: 8px; color: var(--accent);">
+                ${icons.spark} Маркетинговая оценка ИИ-Критика: ${c.summaryScore || 0}%
+              </h2>
+              <p class="text" style="font-size: 13px; line-height: 1.5; margin-top: 8px; color: var(--text-main);">
+                <strong>Критика маркетолога:</strong> ${escapeHtml(c.critique || "Нет замечаний.")}
+              </p>
+              ${c.improvementsMade ? `
+                <p class="text" style="font-size: 13px; line-height: 1.5; margin-top: 8px; color: var(--text-muted);">
+                  <strong>Улучшения:</strong> ${escapeHtml(c.improvementsMade)}
+                </p>
+              ` : ""}
+              
+              <div class="auto-tight" style="margin-top: 16px;">
+                <div class="metric" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                  <div class="metric-value" style="font-size: 20px; color: ${c.hookScore >= 80 ? 'var(--success)' : 'var(--danger)'};">${c.hookScore || 0}%</div>
+                  <div class="metric-label" style="font-size: 10px; text-transform: none; letter-spacing: 0;">Хук / Заголовок</div>
+                </div>
+                <div class="metric" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                  <div class="metric-value" style="font-size: 20px; color: ${c.painScore >= 80 ? 'var(--success)' : 'var(--danger)'};">${c.painScore || 0}%</div>
+                  <div class="metric-label" style="font-size: 10px; text-transform: none; letter-spacing: 0;">Раскрытие боли</div>
+                </div>
+                <div class="metric" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                  <div class="metric-value" style="font-size: 20px; color: ${c.proofScore >= 80 ? 'var(--success)' : 'var(--danger)'};">${c.proofScore || 0}%</div>
+                  <div class="metric-label" style="font-size: 10px; text-transform: none; letter-spacing: 0;">Доказательства</div>
+                </div>
+                <div class="metric" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                  <div class="metric-value" style="font-size: 20px; color: ${c.ctaScore >= 80 ? 'var(--success)' : 'var(--danger)'};">${c.ctaScore || 0}%</div>
+                  <div class="metric-label" style="font-size: 10px; text-transform: none; letter-spacing: 0;">Призыв / CTA</div>
+                </div>
+                <div class="metric" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                  <div class="metric-value" style="font-size: 20px; color: ${c.platformScore >= 80 ? 'var(--success)' : 'var(--danger)'};">${c.platformScore || 0}%</div>
+                  <div class="metric-label" style="font-size: 10px; text-transform: none; letter-spacing: 0;">Формат площадки</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        let visualizerHtml = "";
+        const bodyText = content.body || "";
+        
+        if (state.activeTemplateId === "reels-script" || state.activeTemplateId === "shorts-script") {
+          visualizerHtml = renderReelsVisualizer(bodyText);
+        } else if (state.activeTemplateId === "rsy-banner") {
+          visualizerHtml = renderRsyVisualizer(bodyText);
+        } else if (state.activeTemplateId === "faq-objection") {
+          visualizerHtml = renderFaqVisualizer(bodyText);
+        } else if (["telegram-sales", "telegram-warmup", "case-post"].includes(state.activeTemplateId)) {
+          visualizerHtml = renderAlternativeHooksVisualizer(bodyText);
+        }
 
         return `
           <div class="panel">
             <div class="row">
               <div>
                 <h1 class="title-xl">Фабрика контента</h1>
-                <p class="text">Сборка материалов из брифа в готовый текст по шаблону.</p>
+                <p class="text">Сборка материалов из коммерческого контекста в готовый пакет по шаблону.</p>
               </div>
               <button class="btn primary" data-action="generate">${icons.spark} Сгенерировать</button>
             </div>
@@ -1739,75 +2311,39 @@
           <section class="workbench">
             <aside class="panel brief-panel">
               <div class="kicker">Шаг 01</div>
-              <h2 class="title">Вводные</h2>
+              <h2 class="title">Вводные для генерации</h2>
               
               <div class="form" style="margin-top: 16px;">
                 <label class="field">
-                  <span class="label">Название проекта</span>
-                  <input class="input" data-action="project-input" name="name" value="${escapeHtml(project.name)}" />
+                  <span class="label">Выбранный проект</span>
+                  <div style="font-weight: 600; color: var(--accent); padding: 8px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius);">
+                    ${escapeHtml(project.name)}
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                    Стратегия и база редактируются во вкладке <a href="#" data-action="tab" data-tab="database" style="color: var(--accent); text-decoration: underline;">База проекта</a>
+                  </div>
                 </label>
 
-                <!-- Brief mode toggle buttons -->
-                <div class="brief-toggle" style="display: flex; gap: 4px; margin-top: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: var(--radius); border: 1px solid var(--border);">
-                  <button class="btn sm ${state.briefMode !== 'fields' ? 'primary' : ''}" data-action="toggle-brief-mode" data-mode="text" type="button" style="flex: 1; font-size: 11px; padding: 4px 6px; border: none; min-height: 28px; line-height: 1;">Один текст</button>
-                  <button class="btn sm ${state.briefMode === 'fields' ? 'primary' : ''}" data-action="toggle-brief-mode" data-mode="fields" type="button" style="flex: 1; font-size: 11px; padding: 4px 6px; border: none; min-height: 28px; line-height: 1;">По полям</button>
-                </div>
+                <label class="field">
+                  <span class="label">Режим генерации</span>
+                  <select class="select" data-action="apply-template-select">
+                    ${contentTemplates.map(t => `<option value="${t.id}" ${t.id === state.activeTemplateId ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join("")}
+                  </select>
+                </label>
 
-                ${state.briefMode !== "fields" ? `
-                  <label class="field">
-                    <span class="label">Бриф (ниша, оффер, боли)</span>
-                    <textarea class="textarea" data-action="project-input" name="briefText" style="min-height: 140px;">${escapeHtml(project.briefText || "")}</textarea>
-                  </label>
-                  <button class="btn" data-action="copy-brief-template" style="margin-bottom: 8px;">${icons.copy} Скопировать шаблон брифа</button>
-                ` : `
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Ниша</span>
-                    <input class="input" data-action="project-input" name="niche" placeholder="Натяжные потолки, клининг, ремонт..." value="${escapeHtml(project.niche || "")}" />
-                  </label>
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Что продвигаем / Оффер</span>
-                    <input class="input" data-action="project-input" name="offer" placeholder="Скидка 15% до конца недели, бесплатный замер..." value="${escapeHtml(project.offer || "")}" />
-                  </label>
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Целевая аудитория</span>
-                    <input class="input" data-action="project-input" name="audience" placeholder="Новоселы в ЖК, мамы в декрете..." value="${escapeHtml(project.audience || "")}" />
-                  </label>
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Главная боль аудитории</span>
-                    <input class="input" data-action="project-input" name="pain" placeholder="Боятся переплат, некачественного монтажа..." value="${escapeHtml(project.pain || "")}" />
-                  </label>
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Факты и УТП (для постов)</span>
-                    <textarea class="textarea" data-action="project-input" name="proof" placeholder="Договор, 5 лет гарантии, 3200+ клиентов, только проверенные мастера..." style="min-height: 60px; font-size: 12px; line-height: 1.4;">${escapeHtml(project.proof || "")}</textarea>
-                  </label>
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Стоп-слова / Что писать нельзя</span>
-                    <input class="input" data-action="project-input" name="common" placeholder="Уникальный, профессиональный, качественный..." value="${escapeHtml(project.common || "")}" />
-                  </label>
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Тон общения / Стиль</span>
-                    <input class="input" data-action="project-input" name="tone" placeholder="Коротко и экспертно, с юмором, дружелюбно..." value="${escapeHtml(project.tone || "")}" />
-                  </label>
-                  <label class="field" style="margin-bottom: 10px;">
-                    <span class="label" style="font-size: 11px; text-transform: uppercase; opacity: 0.8;">Тема на сегодня (детали)</span>
-                    <input class="input" data-action="project-input" name="details" placeholder="Например: почему дешевый профиль желтеет..." value="${escapeHtml(project.details || "")}" />
-                  </label>
-                `}
+                <label class="field">
+                  <span class="label">Тема на сегодня (детализация)</span>
+                  <textarea class="textarea" data-action="project-input" name="details" placeholder="Например: почему дешевый профиль желтеет и как не потерять 50к руб на замене" style="min-height: 80px;">${escapeHtml(project.details || "")}</textarea>
+                </label>
 
-                <div style="border-top: 1px solid var(--border); margin: 8px 0; padding-top: 16px;">
-                  <h3 class="title-sm">Параметры генерации</h3>
-                  <div class="field" style="margin-top: 8px;">
-                    <span class="label">Шаблон</span>
-                    <select class="select" data-action="apply-template-select">
-                      ${contentTemplates.map(t => `<option value="${t.id}" ${t.id === state.activeTemplateId ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join("")}
-                    </select>
-                  </div>
-                  <div class="auto-tight" style="margin-top: 12px;">
-                    ${renderPlannerInput("publishDate", "Дата", planner.publishDate, "", "date")}
-                    ${renderPlannerInput("publishTime", "Время", planner.publishTime, "", "time")}
-                  </div>
-                  <button class="btn primary" data-action="generate" style="margin-top: 16px; width: 100%;">${icons.spark} Запуск</button>
+                <div class="auto-tight" style="margin-top: 8px;">
+                  ${renderPlannerInput("publishDate", "Дата", planner.publishDate, "", "date")}
+                  ${renderPlannerInput("publishTime", "Время", planner.publishTime, "", "time")}
                 </div>
+                
+                <button class="btn primary" data-action="generate" style="margin-top: 16px; width: 100%; font-weight: 700;">
+                  ${icons.spark} Запустить генерацию пакета
+                </button>
               </div>
             </aside>
 
@@ -1820,9 +2356,11 @@
                   </div>
                 </div>
                 <div class="auto-tight" style="margin-top:16px;">
-                  ${state.ideas.length ? state.ideas.map(renderIdea).join("") : renderEmpty("Бэклог пуст. Заполни бриф и запусти генерацию.")}
+                  ${state.ideas.length ? state.ideas.map(renderIdea).join("") : renderEmpty("Бэклог пуст. Выбери тему на сегодня и запусти генерацию.")}
                 </div>
               </div>
+
+              ${criticHtml}
 
               <div class="panel">
                 <div class="kicker">Шаг 03</div>
@@ -1835,7 +2373,18 @@
                 <div class="output-box" style="margin-top: 16px;">
                   <div class="form">
                     <label class="field"><span class="label">Заголовок</span><input class="input" data-action="edit-content" data-field="headline" value="${escapeHtml(content.headline)}" /></label>
-                    <label class="field"><span class="label">Текст</span><textarea class="textarea" data-action="edit-content" data-field="body">${escapeHtml(content.body)}</textarea></label>
+                    <label class="field">
+                      <span class="label">Текст</span>
+                      <textarea class="textarea" data-action="edit-content" data-field="body" style="min-height: 200px;">${escapeHtml(content.body)}</textarea>
+                      <!-- AI Refinement Buttons -->
+                      <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+                        <button class="btn small" data-action="refine-pain" type="button" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">💥 Усилить боль</button>
+                        <button class="btn small" data-action="refine-proof" type="button" style="background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); color: #4ade80;">🛡️ Добавить факт</button>
+                        <button class="btn small" data-action="refine-shorten" type="button" style="background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.2); color: #60a5fa;">✂️ Сократить</button>
+                        <button class="btn small" data-action="refine-rsy" type="button" style="background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.2); color: #c084fc;">🎯 Под РСЯ</button>
+                        <button class="btn small" data-action="refine-reels" type="button" style="background: rgba(234, 179, 8, 0.08); border-color: rgba(234, 179, 8, 0.2); color: #facc15;">🎬 Под Reels</button>
+                      </div>
+                    </label>
                     <label class="field"><span class="label">Теги</span><input class="input" data-action="edit-content" data-field="tags" value="${escapeHtml(content.tags)}" /></label>
                     <label class="field">
                       <span class="label">Медиа-файл</span>
@@ -1851,6 +2400,8 @@
                   </div>
                 </div>
               </div>
+
+              ${visualizerHtml}
             </div>
           </section>
         `;
@@ -2136,7 +2687,7 @@
       };
 
       /* Network / Logic hooks (same as before) */
-      function workspacePayload() { return { activeProjectId: state.activeProjectId, activePlatform: state.activePlatform, activeTemplateId: state.activeTemplateId, selectedIdeaId: state.selectedIdeaId, selectedMediaId: state.selectedMediaId, planner: state.planner, projects: state.projects, ideas: state.ideas, media: state.media, queue: state.queue, logs: state.logs }; }
+      function workspacePayload() { return { activeProjectId: state.activeProjectId, activePlatform: state.activePlatform, activeTemplateId: state.activeTemplateId, selectedIdeaId: state.selectedIdeaId, selectedMediaId: state.selectedMediaId, planner: state.planner, projects: state.projects, ideas: state.ideas, media: state.media, queue: state.queue, logs: state.logs, critic: state.critic }; }
       function scheduleWorkspaceSave() { if (!serverSyncReady || !token()) return; clearTimeout(serverSaveTimer); serverSaveTimer = setTimeout(pushWorkspace, 800); }
       async function pushWorkspace() { if (!token()) return; try { await request("/api/workspace", { method: "PUT", body: { workspace: workspacePayload() } }); } catch (e) { } }
       async function fetchWorkspace() { if (!token()) return; try { const data = await request("/api/workspace"); serverSyncReady = true; if (data.workspace && data.workspace.projects) { state = { ...state, ...data.workspace }; ensurePlanner(); saveState(); render(); } } catch (e) { serverSyncReady = true; render(); } }
@@ -2149,6 +2700,7 @@
         try {
           const data = await request("/api/generate", { method: "POST", body: { project: activeProject(), settings: state.settings, platform: state.activePlatform, planner: ensurePlanner() } });
           state.ideas = (data.ideas || []).map(i => ({ id: uid("i"), ...i, status: "Готово" }));
+          state.critic = data.critic || null;
           state.selectedIdeaId = state.ideas[0]?.id || ""; state.activeTab = "factory";
           showToast("Сгенерировано");
         } catch (e) {
@@ -2227,7 +2779,7 @@
           render();
           return;
         }
-        if (a === "new-project") { const id = uid("p"); state.projects.unshift({ id, name: "Новый проект", briefText: "", niche: "", offer: "", audience: "", pain: "", proof: "", common: "", tone: "", details: "" }); state.activeProjectId = id; render(); return; }
+        if (a === "new-project") { const id = uid("p"); state.projects.unshift({ id, name: "Новый проект", briefText: "", niche: "", offer: "", audience: "", pain: "", proof: "", common: "", tone: "", details: "", price: "", timelines: "", warranty: "", geo: "", landingPage: "", awareness: "Теплый", fear: "", reason: "", facts: "", goal: "", nextStep: "", leadMagnet: "", stopWords: "", competitors: "", advantages: "" }); state.activeProjectId = id; render(); return; }
         if (a === "delete-project") { if (state.projects.length > 1) { state.projects = state.projects.filter(p => p.id !== state.activeProjectId); state.activeProjectId = state.projects[0].id; render(); } return; }
         if (a === "select-project") { state.activeProjectId = t.dataset.id; render(); return; }
         if (a === "check-backend") { checkBackend(); return; }
@@ -2235,10 +2787,16 @@
         if (a === "save-server-config") { saveServerConfig(); return; }
         if (a === "clear-logs") { state.logs = []; render(); return; }
         if (a === "copy-current") { copyText(selectedContent().body); return; }
+        if (a === "copy-text-custom") { copyText(t.dataset.text); return; }
         if (a === "copy-brief-template") { copyText("Ниша:\nОффер:\nАудитория:\nБоль:\nФакт/Доказательство:"); return; }
+        if (a === "refine-pain") { refineText("amplify-pain"); return; }
+        if (a === "refine-proof") { refineText("add-proof"); return; }
+        if (a === "refine-shorten") { refineText("shorten"); return; }
+        if (a === "refine-rsy") { refineText("adapt-rsy"); return; }
+        if (a === "refine-reels") { refineText("adapt-reels"); return; }
         if (a === "clear-workspace-all") {
-          state.ideas = []; state.queue = []; state.media = []; state.logs = [];
-          state.projects = [{ id: "p_1", name: "Новый", briefText: "", niche: "", offer: "", audience: "", pain: "", proof: "", common: "", tone: "", details: "" }]; state.activeProjectId = "p_1";
+          state.ideas = []; state.queue = []; state.media = []; state.logs = []; state.critic = null;
+          state.projects = [{ id: "p_1", name: "Новый", briefText: "", niche: "", offer: "", audience: "", pain: "", proof: "", common: "", tone: "", details: "", price: "", timelines: "", warranty: "", geo: "", landingPage: "", awareness: "Теплый", fear: "", reason: "", facts: "", goal: "", nextStep: "", leadMagnet: "", stopWords: "", competitors: "", advantages: "" }]; state.activeProjectId = "p_1";
           render(); showToast("Очищено"); return;
         }
       });

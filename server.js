@@ -1544,19 +1544,83 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       ideas = normalizeIdeas(data);
     } catch (jsonError) {
       warning = "AI ответил не чистым JSON. Сервер собрал идеи из текстового ответа модели.";
-      ideas = fallbackIdeasFromText(text, ideaCount, safeProject);
+      ideas = fallbackIdeasFromText(text, 1, safeProject);
       console.warn("generate json fallback:", jsonError.message, String(text || "").slice(0, 800));
     }
 
     if (!ideas.length) {
-      ideas = fallbackIdeasFromText(text || "", ideaCount, safeProject);
+      ideas = fallbackIdeasFromText(text || "", 1, safeProject);
     }
 
     if (!ideas.length) {
       return res.status(500).json({
-        error: "AI не вернул идеи. Попробуй другую модель или уменьши количество идей.",
+        error: "AI не вернул идеи. Попробуй другую модель или проверь настройки.",
         rawPreview: String(text || "").slice(0, 800)
       });
+    }
+
+    // --- ЭТАП 2: ВЫЗОВ AI-КРИТИКА ДЛЯ ОЦЕНКИ И ШЛИФОВКИ ПАКЕТА ---
+    let finalPayload = { ideas };
+    if (ideas.length > 0) {
+      try {
+        console.log("[AI-Critic] Запуск маркетинговой проверки контента...");
+        
+        const criticSystemPrompt = `You are a strict, highly professional Conversion Rate Optimization (CRO) expert and master copywriter.
+Your task is to review the generated content package and evaluate it with extreme rigor.
+1. Scoring: Rate the package on a scale of 0-100 across 5 metrics:
+   - "hookScore": Strength of the opening hook, first seconds, or ad headline. Is it highly compelling?
+   - "painScore": How deeply it resonates with the specified audience pain points. Is it emotional yet precise?
+   - "proofScore": Effective use of specific proofs, figures, and trust markers from the project's Proof Vault (e.g. warranties, prices, facts). If the copy uses vague fluff like "best quality", "reliable team", punish the score severely.
+   - "ctaScore": Actionability and strength of the call to action, integrating the landing page and lead magnet.
+   - "platformScore": Adherence to platform rhythm and requirements (e.g. reels visual pacing, telegram paragraph pacing, RSY length limit).
+2. Critique: Write a highly constructive, brief marketing critique in Russian (what works, what is weak, why).
+3. Polish: Rewrite and polish any parts of the package to eliminate fluff, substitute clichés with specific numbers, warranties, or facts from the project profile, and maximize conversion rate.
+Output the polished JSON package in the EXACT SAME schema but add a top-level "critic" object:
+"critic": {
+  "hookScore": 92,
+  "painScore": 95,
+  "proofScore": 88,
+  "ctaScore": 90,
+  "platformScore": 94,
+  "summaryScore": 92,
+  "critique": "Критика маркетолога в 2-4 предложениях...",
+  "improvementsMade": "Какие улучшения были внесены..."
+}
+Do not write any introductory or conversational text, output ONLY strictly valid JSON starting with { and ending with }.`;
+
+        const criticUserPrompt = `
+Маркетинговая база проекта:
+${briefSection}
+
+Сгенерированный пакет контента:
+${JSON.stringify({ ideas }, null, 2)}
+
+Оцени и отшлифуй этот пакет согласно системной инструкции. Верни строго JSON.`;
+
+        const criticRequestPayload = {
+          temperature: 0.25,
+          max_tokens: AI_MAX_TOKENS,
+          messages: [
+            { role: "system", content: criticSystemPrompt },
+            { role: "user", content: criticUserPrompt }
+          ]
+        };
+
+        const criticAiResult = await callTimewebAgentApi(timewebApiKey, timewebAgentId, criticRequestPayload);
+        const criticText = criticAiResult.completion.choices?.[0]?.message?.content || "";
+        
+        try {
+          const polishedData = extractJson(criticText);
+          if (polishedData && polishedData.ideas) {
+            finalPayload = polishedData;
+            console.log("[AI-Critic] Маркетинговая проверка завершена успешно, пакет отшлифован!");
+          }
+        } catch (jsonError) {
+          console.warn("[AI-Critic] Критик вернул невалидный JSON, используем исходную версию:", jsonError.message);
+        }
+      } catch (criticError) {
+        console.error("[AI-Critic] Ошибка при вызове ИИ-Критика:", criticError.message);
+      }
     }
 
     res.json({
@@ -1565,7 +1629,8 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
       model: modelToUse,
       warning,
       rawWasJson: !warning,
-      ideas,
+      ideas: finalPayload.ideas || ideas,
+      critic: finalPayload.critic || null,
       limitInfo: getLimitInfo(req)
     });
   } catch (error) {
@@ -1584,6 +1649,91 @@ app.post("/api/generate", requireAuth, aiLimiter, enforceGenerationLimit, async 
     res.status(500).json({
       error: hint ? `${message}. ${hint}` : message
     });
+  }
+});
+
+// --- ЭНДПОИНТ AI-УЛУЧШАЙЗЕРОВ (КНОПКИ В РЕДАКТОРЕ) ---
+app.post("/api/refine", requireAuth, aiLimiter, enforceGenerationLimit, async (req, res) => {
+  try {
+    const timewebApiKey = TIMEWEB_API_KEY;
+    const timewebAgentId = TIMEWEB_AGENT_ID;
+
+    if (!timewebApiKey || !timewebAgentId) {
+      return res.status(400).json({
+        error: "Timeweb-агент не настроен на сервере."
+      });
+    }
+
+    const { text, action, project } = req.body || {};
+    if (!text || typeof text !== "string" || !text.trim()) {
+      return res.status(400).json({ error: "Не передан текст для улучшения" });
+    }
+    if (!action) {
+      return res.status(400).json({ error: "Не передано действие (action)" });
+    }
+
+    const safeProject = isPlainObject(project) ? {
+      name: cleanText(project.name || "", 180),
+      niche: cleanText(project.niche || "", 240),
+      offer: cleanText(project.offer || "", 1000),
+      pain: cleanText(project.pain || "", 1000),
+      proof: cleanText(project.proof || "", 1000),
+      facts: cleanText(project.facts || "", 2000),
+      stopWords: cleanText(project.stopWords || "", 1000)
+    } : {};
+
+    let instruction = "";
+    if (action === "amplify-pain") {
+      instruction = `Усиль эмоциональную боль и проблему аудитории в следующем тексте. Сделай проблему более острой, затронь глубокие страхи клиентов, но пиши без воды и штампов.
+      Контекст боли: ${safeProject.pain || "проблема клиента"}.`;
+    } else if (action === "add-proof") {
+      instruction = `Интегрируй в следующий текст убедительные конкретные факты, цифры или гарантии из Банка доказательств проекта. Замени любые общие слова типа "качественно", "надежно" на конкретику.
+      Банк доказательств: ${safeProject.proof || ""} ${safeProject.facts || ""}.`;
+    } else if (action === "shorten") {
+      instruction = `Максимально сократи следующий текст, убери из него всю "воду" и лишние вводные слова. Сделай его емким, плотным и коротким, но сохрани ключевой оффер и CTA.`;
+    } else if (action === "adapt-rsy") {
+      instruction = `Переделай следующий текст под формат рекламного баннера РСЯ (Яндекс Директ). Выдай 1 супер-короткий кликабельный заголовок (до 10-15 слов) и 1 текст объявления (до 81 символа) с призывом.`;
+    } else if (action === "adapt-reels") {
+      instruction = `Переделай следующий текст в сценарий короткого видео Reels/Shorts на 20-30 секунд. Разбей его на 3-4 кадра, для каждого кратко укажи визуал и речь.`;
+    } else {
+      instruction = `Улучши следующий текст: сделай его более вовлекающим, чистым и продающим.`;
+    }
+
+    const systemPrompt = `You are a professional conversion copywriter.
+Your task is to take the user's text and refine it strictly according to the instruction.
+Maintain the original Russian language.
+Do not include any chat prefix, introductions, questions, explanations, or markdown formatting. Output ONLY the improved final text string.`;
+
+    const userPrompt = `
+Бизнес-контекст проекта:
+- Ниша: ${safeProject.niche || ""}
+- Оффер: ${safeProject.offer || ""}
+- Запреты/Стоп-слова: ${safeProject.stopWords || ""}
+
+Исходный текст:
+"${text}"
+
+Инструкция по улучшению:
+${instruction}
+
+Выдай только улучшенный текст.`;
+
+    const requestPayload = {
+      temperature: 0.3,
+      max_tokens: 1500,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]
+    };
+
+    const result = await callTimewebAgentApi(timewebApiKey, timewebAgentId, requestPayload);
+    const refinedText = result.completion.choices?.[0]?.message?.content || "";
+
+    res.json({ ok: true, refinedText: refinedText.trim() });
+  } catch (err) {
+    console.error("Ошибка в /api/refine:", err.message);
+    res.status(500).json({ error: `Не удалось улучшить текст: ${err.message}` });
   }
 });
 
