@@ -29,7 +29,7 @@ loadPackedEnvVariable("logi");
 loadPackedEnvVariable("LOGI");
 loadPackedEnvVariable("TIMEWEB_ENV");
 
-const APP_BUILD = "2026-05-30-timeweb-health-v10";
+const APP_BUILD = "2026-05-30-timeweb-health-v11";
 const FALLBACK_TIMEWEB_AGENT_ID = "40f010e8-9dd7-473c-812f-81b65aba981f";
 
 function extractJwt(value) {
@@ -133,11 +133,12 @@ const TIMEWEB_ENV = resolveTimewebEnv();
 const TIMEWEB_API_KEY = TIMEWEB_ENV.apiKey;
 const TIMEWEB_AGENT_ID = TIMEWEB_ENV.agentId;
 
-const defaultDataDir = process.env.NODE_ENV === "production"
+const runsInsideAppContainer = process.cwd() === "/app";
+const defaultDataDir = process.env.NODE_ENV === "production" || runsInsideAppContainer
   ? path.join("/tmp", "content-factory-data")
   : path.join(process.cwd(), "data");
 const envDataDir = process.env.DATA_DIR || "";
-let DATA_DIR = process.env.NODE_ENV === "production" && envDataDir.startsWith("/app")
+let DATA_DIR = envDataDir.startsWith("/app")
   ? defaultDataDir
   : envDataDir || defaultDataDir;
 const targetDataDir = DATA_DIR;
